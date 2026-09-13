@@ -82,20 +82,23 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
   };
 
   return (
-    <div className="bg-canvas rounded-xl border border-hairline shadow-xs p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-hairline mb-5">
+    <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-7 space-y-5 sm:space-y-6 shadow-xs">
+      {/* Header with Contextual Action */}
+      <div className="flex items-center justify-between pb-3.5 sm:pb-4 border-b border-slate-100">
         <div>
-          <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            Savings Goals & Ipon Targets
-          </h3>
-          <p className="text-xs text-muted mt-0.5">Track progress toward specific financial milestones</p>
+            Target Milestones
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5 font-normal">
+            Automated progress tracking toward designated funds
+          </p>
         </div>
+
         <button
           type="button"
           onClick={openCreateModal}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-pill text-xs font-semibold bg-surface-strong text-ink hover:bg-hairline transition-colors border border-hairline cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-full text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 active:bg-slate-950 transition-all cursor-pointer shadow-xs min-h-[36px]"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New Goal</span>
@@ -103,12 +106,16 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
       </div>
 
       {/* Goals List */}
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {goals.length === 0 ? (
-          <div className="text-center py-8 text-muted">
-            <Target className="w-8 h-8 mx-auto mb-2 opacity-40 text-muted" />
-            <p className="text-xs font-medium text-ink">No savings goals created yet.</p>
-            <p className="text-xs text-muted mt-1">Click "New Goal" above to create an Emergency Fund, Travel Stash, or Gadget Fund.</p>
+          <div className="py-12 text-center px-4 rounded-xl bg-slate-50/60 border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
+              <Target className="w-5 h-5" />
+            </div>
+            <p className="text-xs font-semibold text-slate-700">No savings goals created yet.</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto font-normal">
+              Click "New Goal" above to create an Emergency Fund, Travel Stash, or Gadget Fund.
+            </p>
           </div>
         ) : (
           goals.map((goal) => {
@@ -122,26 +129,26 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
             return (
               <div
                 key={goal.id}
-                className="p-4 rounded-xl border border-hairline bg-surface-soft/60 hover:bg-surface-soft transition-colors"
+                className="p-3.5 sm:p-4 rounded-xl border border-slate-200/70 bg-slate-50/40 hover:bg-slate-50/80 transition-all space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-ink">{goal.title}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-900">{goal.title}</span>
                       {goal.category && (
-                        <span className="text-[10px] font-mono font-medium text-muted bg-canvas px-2 py-0.5 rounded-pill border border-hairline">
+                        <span className="text-[10px] font-mono font-medium text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
                           {goal.category}
                         </span>
                       )}
                       {isCompleted && (
-                        <span className="text-[10px] font-semibold text-semantic-up bg-canvas px-2 py-0.5 rounded-pill border border-hairline flex items-center gap-0.5">
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-0.5">
                           <CheckCircle className="w-3 h-3 inline" /> Achieved
                         </span>
                       )}
                     </div>
                     {goal.targetDate && (
-                      <p className="text-[11px] text-muted flex items-center gap-1 mt-1 font-mono">
-                        <Calendar className="w-3 h-3" /> Target: {goal.targetDate}
+                      <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1 font-mono">
+                        <Calendar className="w-3 h-3 text-slate-400" /> Target: {goal.targetDate}
                       </p>
                     )}
                   </div>
@@ -150,9 +157,10 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
                     <button
                       type="button"
                       onClick={() => openEditModal(goal)}
-                      className="p-1.5 text-muted hover:text-ink rounded-pill transition-colors cursor-pointer"
+                      className="p-2 sm:p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white active:bg-slate-200 rounded-lg transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center"
+                      title="Edit goal"
                     >
-                      <Edit2 className="w-3 h-3" />
+                      <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       type="button"
@@ -161,46 +169,40 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
                           onDeleteGoal(goal.id);
                         }
                       }}
-                      className="p-1.5 text-muted hover:text-semantic-down rounded-pill transition-colors cursor-pointer"
+                      className="p-2 sm:p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white active:bg-rose-50 rounded-lg transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center"
+                      title="Delete goal"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="mt-3.5">
-                  <div className="w-full bg-surface-strong rounded-pill h-1.5 overflow-hidden">
+                {/* Progress Bar */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1 font-mono">
+                    <span className="text-slate-600 font-medium">
+                      {formatCurrency(goal.currentAmount, currency)}
+                    </span>
+                    <span className="text-slate-400">
+                      Goal: {formatCurrency(goal.targetAmount, currency)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-pill transition-all duration-500 ${
-                        isCompleted ? 'bg-semantic-up' : 'bg-primary'
+                      className={`h-full transition-all duration-500 rounded-full ${
+                        isCompleted ? 'bg-emerald-500' : 'bg-primary'
                       }`}
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-
-                  {/* Amounts & Percentage */}
-                  <div className="flex items-center justify-between text-xs mt-2 font-mono">
-                    <span className="font-medium text-ink">
-                      {formatCurrency(goal.currentAmount, currency)}{' '}
-                      <span className="font-normal text-muted">
-                        / {formatCurrency(goal.targetAmount, currency)}
-                      </span>
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        isCompleted ? 'text-semantic-up' : 'text-ink'
-                      }`}
-                    >
-                      {percentage}%
+                  <div className="flex justify-between text-[11px] text-slate-500 mt-1 font-mono">
+                    <span className="font-semibold text-slate-700">{percentage}% funded</span>
+                    <span>
+                      {isCompleted
+                        ? 'Target reached!'
+                        : `${formatCurrency(remaining, currency)} remaining`}
                     </span>
                   </div>
-
-                  {!isCompleted && remaining > 0 && (
-                    <p className="text-[11px] text-muted mt-1 font-mono">
-                      Need {formatCurrency(remaining, currency)} more to reach goal
-                    </p>
-                  )}
                 </div>
               </div>
             );
@@ -208,27 +210,26 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
         )}
       </div>
 
-      {/* Goal Add/Edit Modal */}
+      {/* Goal Modal (Bottom Sheet on Mobile, Centered on Desktop) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-canvas rounded-xl max-w-md w-full shadow-soft-drop border border-hairline overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-surface-soft">
-              <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-primary" />
-                {editingGoalId ? 'Edit Savings Goal' : 'Create Savings Goal'}
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto pb-safe animate-in slide-in-from-bottom sm:zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-base font-semibold text-slate-900">
+                {editingGoalId ? 'Edit Savings Goal' : 'Create New Savings Goal'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted hover:text-ink cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 active:bg-slate-100 rounded-lg min-w-[32px] min-h-[32px] flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-muted mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Goal Title <span className="text-primary">*</span>
                 </label>
                 <input
@@ -236,82 +237,80 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Emergency Fund, Japan Trip, Car Downpayment"
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-hairline focus:outline-none focus:ring-2 focus:ring-primary text-ink"
+                  placeholder="e.g., Emergency Fund, Japan Trip"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[44px]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-muted mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Target Amount <span className="text-primary">*</span>
                   </label>
                   <input
                     type="number"
+                    inputMode="decimal"
                     step="any"
-                    required
                     min="1"
+                    required
                     value={targetAmount}
                     onChange={(e) => setTargetAmount(e.target.value)}
                     placeholder="50000"
-                    className="w-full px-4 py-2.5 text-sm font-mono rounded-xl border border-hairline focus:outline-none focus:ring-2 focus:ring-primary text-ink"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-muted mb-1.5">
-                    Current Amount
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Current Balance
                   </label>
                   <input
                     type="number"
+                    inputMode="decimal"
                     step="any"
                     min="0"
                     value={currentAmount}
                     onChange={(e) => setCurrentAmount(e.target.value)}
                     placeholder="0"
-                    className="w-full px-4 py-2.5 text-sm font-mono rounded-xl border border-hairline focus:outline-none focus:ring-2 focus:ring-primary text-ink"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[44px]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-muted mb-1.5">
-                    Category Tag
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
                   <input
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="Travel, Tech, Emergency"
-                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-hairline focus:outline-none focus:ring-2 focus:ring-primary text-ink"
+                    placeholder="Safety Net, Travel"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-muted mb-1.5">
-                    Target Date
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Target Date</label>
                   <input
                     type="date"
                     value={targetDate}
                     onChange={(e) => setTargetDate(e.target.value)}
-                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-hairline focus:outline-none focus:ring-2 focus:ring-primary text-ink"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[44px]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2">
+              <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-muted hover:text-ink hover:bg-surface-strong rounded-pill cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors min-h-[42px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-on-primary bg-primary hover:bg-primary-active rounded-pill shadow-xs cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-active active:bg-primary-active transition-colors shadow-xs min-h-[42px]"
                 >
-                  {editingGoalId ? 'Save Goal' : 'Create Goal'}
+                  {editingGoalId ? 'Save Changes' : 'Create Goal'}
                 </button>
               </div>
             </form>

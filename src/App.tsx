@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useAuth } from '@clerk/react';
+import React, { useState, useRef } from 'react';
+import { useAuth, UserButton } from '@clerk/react';
 import { LandingPage } from './components/LandingPage';
 import { Header } from './components/Header';
+import { Sidebar, type FeatureKey } from './components/Sidebar';
 import { MetricCards } from './components/MetricCards';
 import { TransactionForm } from './components/TransactionForm';
 import { HistoryList } from './components/HistoryList';
@@ -10,13 +11,29 @@ import { SavingsGoalsCard } from './components/SavingsGoalsCard';
 import { EditTransactionModal } from './components/EditTransactionModal';
 import { ToastContainer } from './components/Toast';
 import { usePiggyVault } from './hooks/usePiggyVault';
-import type { Transaction } from './types';
-import { formatCurrency } from './utils/formatters';
-import { saveTransactions, saveSavingsGoals } from './utils/storage';
-import { ArrowRight, PiggyBank } from 'lucide-react';
+import type { Transaction, TransactionType, MainView, CurrencyCode } from './types';
+import { formatCurrency, CURRENCIES } from './utils/formatters';
+import { saveTransactions, saveSavingsGoals, exportToCSV, exportToJSON } from './utils/storage';
+import {
+  PiggyBank,
+  TrendingDown,
+  PieChart,
+  ShieldCheck,
+  Target,
+  PlusCircle,
+  LayoutDashboard,
+  Settings,
+  TrendingUp,
+  FileSpreadsheet,
+  FileCode,
+  Upload,
+  Trash2,
+  Lock,
+  ArrowRight,
+} from 'lucide-react';
 
 export function App() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
 
   const {
     transactions,
@@ -42,6 +59,11 @@ export function App() {
   } = usePiggyVault();
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [currentView, setCurrentView] = useState<MainView>('dashboard');
+  const [formTab, setFormTab] = useState<TransactionType>('EXPENSE');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportData = (newTransactions: Transaction[], newGoals: typeof savingsGoals) => {
     saveTransactions(newTransactions);
@@ -49,15 +71,134 @@ export function App() {
     window.location.reload();
   };
 
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (parsed && Array.isArray(parsed.transactions)) {
+          handleImportData(parsed.transactions, parsed.goals || []);
+          showToast(`Imported ${parsed.transactions.length} transactions`, 'success');
+        } else if (Array.isArray(parsed)) {
+          handleImportData(parsed, []);
+          showToast(`Imported ${parsed.length} transactions`, 'success');
+        } else {
+          showToast('Invalid JSON file format', 'error');
+        }
+      } catch {
+        showToast('Error reading backup file', 'error');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSelectView = (view: MainView) => {
+    setCurrentView(view);
+    if (view === 'expense') {
+      setFormTab('EXPENSE');
+    } else if (view === 'savings') {
+      setFormTab('SAVINGS');
+    }
+    window.scrollTo?.({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectFeature = (feature: FeatureKey) => {
+    switch (feature) {
+      case 'dashboard':
+      case 'horizons':
+        setCurrentView('dashboard');
+        window.scrollTo?.({ top: 0, behavior: 'smooth' });
+        break;
+      case 'expense':
+        setCurrentView('expense');
+        setFormTab('EXPENSE');
+        setTimeout(() => {
+          const formElem = document.getElementById('transaction-section');
+          formElem?.scrollIntoView?.({ behavior: 'smooth' });
+          const amountInput = formElem?.querySelector('input[type="number"]') as HTMLInputElement | null;
+          amountInput?.focus();
+        }, 50);
+        break;
+      case 'savings':
+        setCurrentView('savings');
+        setFormTab('SAVINGS');
+        setTimeout(() => {
+          const formElem = document.getElementById('transaction-section');
+          formElem?.scrollIntoView?.({ behavior: 'smooth' });
+          const amountInput = formElem?.querySelector('input[type="number"]') as HTMLInputElement | null;
+          amountInput?.focus();
+        }, 50);
+        break;
+      case 'ledger':
+        setCurrentView('expense');
+        setTimeout(() => {
+          document.getElementById('history-feed')?.scrollIntoView?.({ behavior: 'smooth' });
+        }, 50);
+        break;
+      case 'analytics':
+        setCurrentView('dashboard');
+        setTimeout(() => {
+          document.getElementById('visual-analytics')?.scrollIntoView?.({ behavior: 'smooth' });
+        }, 50);
+        break;
+      case 'goals':
+        setCurrentView('goals');
+        setTimeout(() => {
+          document.getElementById('savings-goals')?.scrollIntoView?.({ behavior: 'smooth' });
+        }, 50);
+        break;
+      case 'health':
+        setCurrentView('goals');
+        setTimeout(() => {
+          document.getElementById('treasury-health')?.scrollIntoView?.({ behavior: 'smooth' });
+        }, 50);
+        break;
+      case 'settings':
+        setCurrentView('settings');
+        window.scrollTo?.({ top: 0, behavior: 'smooth' });
+        break;
+    }
+  };
+
+  const activeFeature: FeatureKey =
+    currentView === 'dashboard'
+      ? 'horizons'
+      : currentView === 'expense'
+      ? 'expense'
+      : currentView === 'savings'
+      ? 'savings'
+      : currentView === 'goals'
+      ? 'goals'
+      : 'settings';
+
+  const viewTitles: Record<MainView, string> = {
+    dashboard: 'Dashboard Overview',
+    expense: 'Expense Tracking',
+    savings: 'Ipon Savings',
+    goals: 'Milestone Goals',
+    settings: 'Settings & Auth',
+  };
+
+  const isSurplus = metrics.netLiquidity >= 0;
+
+  // Filtered transactions for specific views
+  const expenseTransactions = filteredTransactions.filter((t) => t.type === 'EXPENSE');
+  const savingsTransactions = filteredTransactions.filter((t) => t.type === 'SAVINGS');
+
   // Loading state while Clerk initializes session
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-canvas text-ink flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-canvas text-slate-900 flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-surface-strong border border-hairline flex items-center justify-center text-primary animate-pulse">
+          <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary animate-pulse">
             <PiggyBank className="w-5 h-5" />
           </div>
-          <p className="text-xs font-mono text-muted">Authenticating PiggyVault...</p>
+          <p className="text-xs font-mono text-slate-500">Authenticating PiggyVault...</p>
         </div>
       </div>
     );
@@ -69,265 +210,879 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col">
-      {/* Header */}
-      <Header
-        currency={currency}
-        onCurrencyChange={setCurrency}
+    <div className="min-h-screen bg-slate-50/40 text-slate-900 flex selection:bg-rose-100 selection:text-rose-900">
+      {/* Sidebar: Collapsible Desktop Rail + Mobile Slide-out Drawer */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        activeView={currentView}
+        onSelectView={handleSelectView}
+        activeFeature={activeFeature}
+        onSelectFeature={handleSelectFeature}
         totalSavings={metrics.totalSavings}
         savingsRate={metrics.savingsRate}
-        transactions={transactions}
-        savingsGoals={savingsGoals}
-        onClearData={clearAllData}
-        onImportData={handleImportData}
-        showToast={showToast}
+        netLiquidity={metrics.netLiquidity}
+        transactionsCount={transactions.length}
+        goalsCount={savingsGoals.length}
+        currency={currency}
+        onCurrencyChange={setCurrency}
+        onExportCSV={() => {
+          exportToCSV(transactions);
+          showToast('Exported transactions to CSV', 'info');
+        }}
+        onExportJSON={() => {
+          exportToJSON(transactions, savingsGoals);
+          showToast('Exported backup JSON file', 'info');
+        }}
+        onImportClick={() => fileInputRef.current?.click()}
+        onClearData={() => {
+          if (
+            window.confirm(
+              'Are you sure you want to clear all transactions and reset to a clean slate?'
+            )
+          ) {
+            clearAllData();
+          }
+        }}
       />
 
-      {/* Signature Full-Bleed Dark Editorial Hero */}
-      <section className="bg-surface-dark text-on-dark border-b border-surface-dark-elevated overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Headline & Editorial Pitch */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-pill bg-surface-dark-elevated border border-white/10 text-xs font-mono text-on-dark-soft">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse-subtle" />
-                <span>INSTITUTIONAL IPON OS</span>
-                <span className="text-white/20">|</span>
-                <span>V2.4</span>
-              </div>
+      {/* Hidden file input for sidebar import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".json"
+        onChange={handleFileImport}
+        className="hidden"
+      />
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white leading-[1.05]">
-                Save with institutional <br className="hidden sm:inline" />
-                <span>precision.</span>
-              </h1>
+      {/* Main View Container */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Sleek Minimalist Header */}
+        <Header
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          totalSavings={metrics.totalSavings}
+          savingsRate={metrics.savingsRate}
+          transactions={transactions}
+          savingsGoals={savingsGoals}
+          onClearData={clearAllData}
+          onImportData={handleImportData}
+          showToast={showToast}
+          onToggleSidebar={() => {
+            setIsSidebarOpen((prev) => !prev);
+            setIsSidebarCollapsed((prev) => !prev);
+          }}
+          activeViewTitle={viewTitles[currentView]}
+        />
 
-              <p className="text-base sm:text-lg text-on-dark-soft font-normal max-w-lg leading-relaxed">
-                Quiet, automated personal treasury logging for multi-horizon expenditures and disciplined accumulated savings.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <a
-                  href="#transaction-section"
-                  className="px-6 py-3 rounded-pill text-sm font-semibold text-white bg-primary hover:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center gap-2"
-                >
-                  <span>Start Logging Free</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-                <a
-                  href="#history-feed"
-                  className="px-6 py-3 rounded-pill text-sm font-semibold text-white bg-surface-dark-elevated hover:bg-white/10 border border-white/15 transition-all cursor-pointer inline-flex items-center gap-2"
-                >
-                  <span>Explore History Log</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Right: Layered Floating Product-UI Mockup Cards */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative mx-auto max-w-md lg:max-w-none min-h-[220px]">
-                {/* Back card at angle */}
-                <div className="bg-surface-dark-elevated/70 border border-white/10 rounded-xl p-6 shadow-2xl transform rotate-2 sm:rotate-3 translate-x-3 translate-y-2 opacity-50 pointer-events-none">
-                  <div className="flex justify-between items-center text-xs text-on-dark-soft mb-3 font-mono">
-                    <span>LIQUIDITY STATUS</span>
-                    <span className="text-semantic-up">+SURPLUS</span>
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 pb-24 lg:pb-10">
+          {/* =========================================================================
+              VIEW 1: DASHBOARD / OVERVIEW (MAIN SUMMARY)
+              ========================================================================= */}
+          {currentView === 'dashboard' && (
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+              {/* Structured Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+                      Treasury Horizons
+                    </h1>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-primary border border-rose-100">
+                      Overview
+                    </span>
                   </div>
-                  <div className="h-16 bg-white/5 rounded-lg" />
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">
+                    Multi-horizon spending overview & net liquidity indicator
+                  </p>
                 </div>
 
-                {/* Main floating mockup card */}
-                <div className="absolute inset-0 bg-surface-dark-elevated border border-white/15 rounded-xl p-6 sm:p-7 shadow-2xl transform -rotate-1 sm:-rotate-2 hover:rotate-0 transition-transform duration-300">
-                  <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-surface-strong flex items-center justify-center text-primary">
-                        <PiggyBank className="w-4 h-4" />
+                {/* Quick Action Navigation Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectView('expense')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 border border-slate-200 cursor-pointer transition-colors"
+                  >
+                    <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Log Expense</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectView('savings')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 border border-slate-200 cursor-pointer transition-colors"
+                  >
+                    <PiggyBank className="w-3.5 h-3.5 text-primary" />
+                    <span>Deposit Ipon</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectView('goals')}
+                    className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 border border-slate-200 cursor-pointer transition-colors"
+                  >
+                    <Target className="w-3.5 h-3.5 text-amber-500" />
+                    <span>New Goal</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Multi-Horizon Metrics Cards */}
+              <section id="horizons-section" aria-label="Financial Summary Metrics">
+                <MetricCards metrics={metrics} currency={currency} />
+              </section>
+
+              {/* Visual Cash Flow Analytics */}
+              <section id="visual-analytics" aria-label="Visual Analytics">
+                <AnalyticsView
+                  categories={categoryBreakdown}
+                  dailyTrends={dailyTrends}
+                  currency={currency}
+                  totalSavings={metrics.totalSavings}
+                  totalExpenses={metrics.allTimeExpenses}
+                />
+              </section>
+
+              {/* 2-Column Dashboard Grid: Recent Activity & Goals Snapshot */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                {/* Left Column: Recent Activity Feed Preview */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <FileSpreadsheet className="w-4 h-4 text-primary" />
+                        <h2 className="text-sm font-semibold text-slate-900">
+                          Recent Activity Feed
+                        </h2>
                       </div>
-                      <div>
-                        <span className="text-xs font-mono text-on-dark-soft uppercase tracking-wider">Total Accumulated Ipon</span>
-                        <h4 className="text-xl sm:text-2xl font-mono font-medium text-white">
-                          {formatCurrency(metrics.totalSavings, currency)}
-                        </h4>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectView('expense')}
+                        className="text-xs text-primary hover:text-rose-700 font-medium flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>View All Transactions</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {transactions.length === 0 ? (
+                      <div className="text-center py-8 text-slate-400 text-xs font-normal">
+                        <PiggyBank className="w-8 h-8 mx-auto mb-2 text-slate-300 opacity-60" />
+                        <p>No transactions found</p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Log an expense or make an ipon deposit to begin tracking.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-100">
+                        {transactions.slice(0, 5).map((tx) => {
+                          const isExp = tx.type === 'EXPENSE';
+                          return (
+                            <div
+                              key={tx.id}
+                              className="py-3 flex items-center justify-between gap-3 text-xs"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                    isExp ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-600'
+                                  }`}
+                                >
+                                  {isExp ? (
+                                    <TrendingDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <PiggyBank className="w-3.5 h-3.5" />
+                                  )}
+                                </div>
+                                <div className="truncate">
+                                  <div className="font-semibold text-slate-900 truncate">
+                                    {tx.title}
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 truncate">
+                                    {tx.destination} · {tx.category}
+                                  </div>
+                                </div>
+                              </div>
+                              <span
+                                className={`font-mono font-semibold shrink-0 ${
+                                  isExp ? 'text-rose-600' : 'text-emerald-600'
+                                }`}
+                              >
+                                {isExp ? '-' : '+'}
+                                {formatCurrency(tx.amount, currency)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Milestone Goals & Treasury Health */}
+                <div className="lg:col-span-5 space-y-6 sm:space-y-8">
+                  {/* Goals Snapshot */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-primary" />
+                        <h2 className="text-sm font-semibold text-slate-900">
+                          Target Milestones
+                        </h2>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectView('goals')}
+                        className="text-xs text-primary hover:text-rose-700 font-medium flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Manage</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {savingsGoals.length === 0 ? (
+                      <div className="text-center py-6 text-slate-400 text-xs font-normal">
+                        <p>No savings goals created yet.</p>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectView('goals')}
+                          className="mt-2 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                        >
+                          + Set your first milestone
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {savingsGoals.slice(0, 3).map((goal) => {
+                          const pct = Math.min(
+                            100,
+                            Math.round((goal.currentAmount / (goal.targetAmount || 1)) * 100)
+                          );
+                          return (
+                            <div key={goal.id} className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="font-medium text-slate-800 truncate">
+                                  {goal.title}
+                                </span>
+                                <span className="font-mono text-slate-500">{pct}%</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-primary rounded-full"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Treasury Health Card */}
+                  <div
+                    id="treasury-health"
+                    className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs"
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold text-slate-900">Treasury Health</h3>
+                      </div>
+                      <span
+                        className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-full ${
+                          isSurplus
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}
+                      >
+                        {isSurplus ? 'Healthy Surplus' : 'Net Deficit'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[11px]">Net Cash Flow</span>
+                        <span
+                          className={`font-mono font-semibold text-sm mt-0.5 block truncate ${
+                            isSurplus ? 'text-emerald-700' : 'text-rose-600'
+                          }`}
+                        >
+                          {isSurplus ? '+' : ''}
+                          {formatCurrency(metrics.netLiquidity, currency)}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[11px]">Savings Ratio</span>
+                        <span className="font-mono font-semibold text-sm text-slate-900 mt-0.5 block truncate">
+                          {metrics.savingsRate}%
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-semibold text-semantic-up bg-semantic-up/10 px-2.5 py-1 rounded-pill border border-semantic-up/20">
-                      +{metrics.savingsRate}% Rate
+
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal pt-1">
+                      100% private client-side vault. Data resides securely in local storage.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =========================================================================
+              VIEW 2: EXPENSE TRACKING (MULTI-HORIZON EXPENSES)
+              ========================================================================= */}
+          {currentView === 'expense' && (
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+                      Expense Tracking
+                    </h1>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 font-semibold">
+                      Mode A
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">
+                    Multi-horizon outlays, operating disbursements & searchable ledger
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs font-mono">
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400">All-Time: </span>
+                    <span className="font-semibold text-rose-600">
+                      {formatCurrency(metrics.allTimeExpenses, currency)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column: Expense Form & Outlays Summary */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                <div className="lg:col-span-7">
+                  <section id="transaction-section" aria-label="Transaction Entry Form">
+                    <TransactionForm
+                      currency={currency}
+                      savingsGoals={savingsGoals}
+                      onAddTransaction={addTransaction}
+                      formTab={formTab}
+                      onFormTabChange={setFormTab}
+                    />
+                  </section>
+                </div>
+
+                <div className="lg:col-span-5 space-y-6">
+                  {/* Expense Horizons Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+                      <TrendingDown className="w-4 h-4 text-rose-500" />
+                      Spending Horizons
+                    </h3>
+                    <div className="space-y-2.5 text-xs">
+                      <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+                        <span className="text-slate-500">Today</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {formatCurrency(metrics.todayExpenses, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+                        <span className="text-slate-500">7-Day Outlays</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {formatCurrency(metrics.weeklyExpenses, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+                        <span className="text-slate-500">30-Day Outlays</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {formatCurrency(metrics.monthlyExpenses, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2.5 rounded-xl bg-rose-50/50 border border-rose-100">
+                        <span className="text-rose-700 font-medium">All-Time Expenses</span>
+                        <span className="font-mono font-semibold text-rose-700">
+                          {formatCurrency(metrics.allTimeExpenses, currency)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Historical Expense Ledger */}
+              <section id="history-feed" aria-label="Transaction History Feed">
+                <HistoryList
+                  transactions={expenseTransactions}
+                  filter={filter}
+                  onFilterChange={setFilter}
+                  currency={currency}
+                  onEdit={(tx) => setEditingTransaction(tx)}
+                  onDelete={deleteTransaction}
+                />
+              </section>
+            </div>
+          )}
+
+          {/* =========================================================================
+              VIEW 3: IPON SAVINGS (PIGGY BANK DEPOSITS & VAULTS)
+              ========================================================================= */}
+          {currentView === 'savings' && (
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+                      Piggy Bank Ipon
+                    </h1>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+                      Mode B
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">
+                    Capital accumulation, coin jars, untouchable reserves & goal allocations
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 text-xs font-mono">
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400">Total Ipon: </span>
+                    <span className="font-semibold text-emerald-700">
+                      {formatCurrency(metrics.totalSavings, currency)}
+                    </span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400">Savings Rate: </span>
+                    <span className="font-semibold text-slate-900">{metrics.savingsRate}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column: Savings Form & Stash Overview */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                <div className="lg:col-span-7">
+                  <section id="transaction-section" aria-label="Transaction Entry Form">
+                    <TransactionForm
+                      currency={currency}
+                      savingsGoals={savingsGoals}
+                      onAddTransaction={addTransaction}
+                      formTab={formTab}
+                      onFormTabChange={setFormTab}
+                    />
+                  </section>
+                </div>
+
+                <div className="lg:col-span-5 space-y-6">
+                  {/* Ipon Stash Summary Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+                      <PiggyBank className="w-4 h-4 text-primary" />
+                      Accumulated Capital Stash
+                    </h3>
+
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-rose-50/40 border border-slate-200/80">
+                      <span className="text-xs text-slate-500 font-medium block">Total Ipon Stash</span>
+                      <div className="text-2xl font-mono font-semibold text-slate-900 mt-1">
+                        {formatCurrency(metrics.totalSavings, currency)}
+                      </div>
+                      <div className="text-[11px] text-emerald-600 font-mono font-medium mt-1 flex items-center gap-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>{metrics.savingsRate}% disciplined savings rate</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-xs text-slate-500">
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50">
+                        <span>Recorded Ipon Deposits</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {savingsTransactions.length}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50">
+                        <span>Active Goals Linked</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {savingsGoals.length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Historical Savings Ledger */}
+              <section id="history-feed" aria-label="Transaction History Feed">
+                <HistoryList
+                  transactions={savingsTransactions}
+                  filter={filter}
+                  onFilterChange={setFilter}
+                  currency={currency}
+                  onEdit={(tx) => setEditingTransaction(tx)}
+                  onDelete={deleteTransaction}
+                />
+              </section>
+            </div>
+          )}
+
+          {/* =========================================================================
+              VIEW 4: MILESTONE GOALS
+              ========================================================================= */}
+          {currentView === 'goals' && (
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+                      Target Milestones
+                    </h1>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
+                      Goals
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">
+                    Capital milestones, automated progress calculation & liquidity health
+                  </p>
+                </div>
+
+                <span className="text-xs text-slate-400 font-mono">
+                  {savingsGoals.length} active target{savingsGoals.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              {/* 2-Column: Goals Card & Treasury Health */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                <div className="lg:col-span-7">
+                  <section id="savings-goals" aria-label="Savings Goals">
+                    <SavingsGoalsCard
+                      goals={savingsGoals}
+                      currency={currency}
+                      onAddGoal={addSavingsGoal}
+                      onUpdateGoal={updateSavingsGoal}
+                      onDeleteGoal={deleteSavingsGoal}
+                    />
+                  </section>
+                </div>
+
+                <div className="lg:col-span-5 space-y-6">
+                  {/* Treasury Health Card */}
+                  <div
+                    id="treasury-health"
+                    className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs"
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold text-slate-900">Treasury Health</h3>
+                      </div>
+                      <span
+                        className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-full ${
+                          isSurplus
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}
+                      >
+                        {isSurplus ? 'Healthy Surplus' : 'Net Deficit'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[11px]">Net Cash Flow</span>
+                        <span
+                          className={`font-mono font-semibold text-sm mt-0.5 block truncate ${
+                            isSurplus ? 'text-emerald-700' : 'text-rose-600'
+                          }`}
+                        >
+                          {isSurplus ? '+' : ''}
+                          {formatCurrency(metrics.netLiquidity, currency)}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-slate-500 block text-[11px]">Savings Ratio</span>
+                        <span className="font-mono font-semibold text-sm text-slate-900 mt-0.5 block truncate">
+                          {metrics.savingsRate}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal pt-1">
+                      Goal allocations are backed by your client-side ipon stash. Deposits linked to goals automatically update progress meters.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =========================================================================
+              VIEW 5: SETTINGS & AUTH MANAGEMENT
+              ========================================================================= */}
+          {currentView === 'settings' && (
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+                      Settings & Auth Management
+                    </h1>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-semibold">
+                      System
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">
+                    Session identity, base currency, and backup disaster recovery
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                {/* 1. Authentication & Profile Card */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-primary" />
+                      <h2 className="text-sm font-semibold text-slate-900">Session & Identity</h2>
+                    </div>
+                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Active
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                      <span className="text-[11px] text-on-dark-soft uppercase font-mono block">Today's Spend</span>
-                      <span className="text-sm sm:text-base font-mono font-medium text-white mt-1 block">
-                        {formatCurrency(metrics.todayExpenses, currency)}
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                      <span className="text-[11px] text-on-dark-soft uppercase font-mono block">Net Cash Flow</span>
-                      <span className="text-sm sm:text-base font-mono font-medium text-semantic-up mt-1 block">
-                        +{formatCurrency(metrics.netLiquidity, currency)}
-                      </span>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <UserButton />
+                    <div className="text-xs min-w-0">
+                      <div className="font-semibold text-slate-900">Clerk Authenticated User</div>
+                      <div className="font-mono text-[11px] text-slate-400 truncate">
+                        ID: {userId || 'Local Session'}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-on-dark-soft font-mono">
-                    <span>Currency Standard</span>
-                    <span className="text-white">{currency} Active</span>
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                    PiggyVault uses Clerk for identity authentication while keeping all financial ledger records exclusively in your local browser storage.
+                  </p>
+                </div>
+
+                {/* 2. Currency Selector Card */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-primary" />
+                      <h2 className="text-sm font-semibold text-slate-900">Regional Currency</h2>
+                    </div>
+                    <span className="text-[11px] font-mono font-semibold text-slate-700">
+                      {currency}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="settings-currency-select" className="text-xs text-slate-600 block">
+                      Base Standard Currency:
+                    </label>
+                    <select
+                      id="settings-currency-select"
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                      className="w-full text-sm font-mono font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+                    >
+                      {Object.values(CURRENCIES).map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.symbol} {c.code} — {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 text-xs flex justify-between items-center">
+                    <span className="text-slate-500">Live Sample Format:</span>
+                    <span className="font-mono font-bold text-slate-900">
+                      {formatCurrency(12345.67, currency)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Data Backup & Storage Tools */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 md:col-span-2">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-4 h-4 text-primary" />
+                      <h2 className="text-sm font-semibold text-slate-900">
+                        Data Backup & Recovery
+                      </h2>
+                    </div>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      {transactions.length} entries · {savingsGoals.length} goals
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        exportToCSV(transactions);
+                        showToast('Exported transactions to CSV', 'info');
+                      }}
+                      className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <FileSpreadsheet className="w-5 h-5 text-slate-500 mb-1.5" />
+                      <div className="text-xs font-semibold text-slate-900">Export CSV</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Spreadsheet ledger</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        exportToJSON(transactions, savingsGoals);
+                        showToast('Exported JSON backup file', 'info');
+                      }}
+                      className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <FileCode className="w-5 h-5 text-slate-500 mb-1.5" />
+                      <div className="text-xs font-semibold text-slate-900">Export JSON Backup</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Full vault snapshot</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-5 h-5 text-slate-500 mb-1.5" />
+                      <div className="text-xs font-semibold text-slate-900">Restore Backup</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Import JSON file</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            'Are you sure you want to clear all transactions and reset to a clean slate?'
+                          )
+                        ) {
+                          clearAllData();
+                        }
+                      }}
+                      className="p-3.5 rounded-xl border border-rose-200 bg-rose-50/40 hover:bg-rose-50 text-left transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-5 h-5 text-rose-500 mb-1.5" />
+                      <div className="text-xs font-semibold text-rose-700">Clear All Data</div>
+                      <div className="text-[11px] text-rose-500 mt-0.5">Reset database</div>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          )}
+        </main>
 
-      {/* Main Content Dashboard with 96px rhythm */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-16 sm:space-y-24">
-        {/* Dynamic Financial Metrics Dashboard (Stat Cards) */}
-        <section aria-label="Financial Summary Metrics">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold tracking-tight text-ink">Treasury Horizons</h2>
-            <p className="text-xs text-muted mt-0.5">Multi-horizon spending overview & net liquidity indicator</p>
-          </div>
-          <MetricCards metrics={metrics} currency={currency} />
-        </section>
-
-        {/* Primary Action Zone: Dual Transaction Entry & Savings Goals Tracker */}
-        <div id="transaction-section" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Dual Transaction Form (Mode A: Expense vs Mode B: Piggy Bank Savings) */}
-          <section className="lg:col-span-7" aria-label="Transaction Entry Form">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold tracking-tight text-ink">Transaction Logging</h2>
-              <p className="text-xs text-muted mt-0.5">Record multi-destination expenses or deposit directly to your piggy bank</p>
+        {/* Clean Minimalist Footer */}
+        <footer className="border-t border-slate-200/80 bg-white py-6 sm:py-8 text-xs text-slate-500 mt-8 mb-16 lg:mb-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 font-mono text-[11px]">
+                <span className="font-semibold text-slate-900">PiggyVault</span>
+                <span>·</span>
+                <span>Personal Treasury Operating System</span>
+              </div>
+              <div className="text-[11px] text-slate-400 font-normal">
+                Zero cloud tracking · 100% client-side privacy · Inter & JetBrains Mono
+              </div>
             </div>
-            <TransactionForm
-              currency={currency}
-              savingsGoals={savingsGoals}
-              onAddTransaction={addTransaction}
-            />
-          </section>
-
-          {/* Savings Goals & Ipon Targets Card */}
-          <section id="savings-goals" className="lg:col-span-5" aria-label="Savings Goals">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold tracking-tight text-ink">Target Milestones</h2>
-              <p className="text-xs text-muted mt-0.5">Automated progress tracking toward designated funds</p>
-            </div>
-            <SavingsGoalsCard
-              goals={savingsGoals}
-              currency={currency}
-              onAddGoal={addSavingsGoal}
-              onUpdateGoal={updateSavingsGoal}
-              onDeleteGoal={deleteSavingsGoal}
-            />
-          </section>
-        </div>
-
-        {/* Visual Analytics: Category Breakdown & 7-Day Spending Trend */}
-        <section id="visual-analytics" aria-label="Visual Analytics">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold tracking-tight text-ink">Liquidity & Cash Flow Analytics</h2>
-            <p className="text-xs text-muted mt-0.5">Category distribution and 7-day comparative dynamics</p>
           </div>
-          <AnalyticsView
-            categories={categoryBreakdown}
-            dailyTrends={dailyTrends}
-            currency={currency}
-            totalSavings={metrics.totalSavings}
-            totalExpenses={metrics.allTimeExpenses}
-          />
-        </section>
+        </footer>
 
-        {/* Automated Record & History Tracking (Search, Filter, Sort, Edit, Delete) */}
-        <section id="history-feed" aria-label="Transaction History Feed">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold tracking-tight text-ink">Historical Audit Trail</h2>
-            <p className="text-xs text-muted mt-0.5">Searchable ledger with exact auto-timestamps</p>
-          </div>
-          <HistoryList
-            transactions={filteredTransactions}
-            filter={filter}
-            onFilterChange={setFilter}
-            currency={currency}
-            onEdit={(tx) => setEditingTransaction(tx)}
-            onDelete={deleteTransaction}
-          />
-        </section>
-      </main>
-
-      {/* Pre-Footer Dark CTA Band */}
-      <section className="bg-surface-dark text-on-dark py-20 sm:py-24 border-t border-surface-dark-elevated">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white">
-            Take total control of your personal treasury.
-          </h2>
-          <p className="text-base text-on-dark-soft max-w-xl mx-auto font-normal">
-            Every transaction logged with exact timestamps, instant local persistence, and multi-horizon cash flow analytics.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <a
-              href="#transaction-section"
-              className="px-7 py-3.5 rounded-pill text-sm font-semibold text-white bg-primary hover:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center gap-2"
+        {/* Mobile Bottom Navigation Bar */}
+        <nav
+          aria-label="Mobile Navigation"
+          className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 lg:hidden px-3 py-1.5 pb-safe shadow-lg"
+        >
+          <div className="flex items-center justify-around max-w-md mx-auto">
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectView('dashboard');
+              }}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors cursor-pointer min-w-[56px] ${
+                currentView === 'dashboard'
+                  ? 'text-primary font-semibold'
+                  : 'text-slate-500 hover:text-slate-800 active:text-slate-900'
+              }`}
             >
-              <span>Start Your Ipon Stash</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </section>
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Overview</span>
+            </button>
 
-      {/* Closing White-Canvas Footer */}
-      <footer className="border-t border-hairline bg-canvas py-12 text-xs text-muted">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            <div>
-              <h5 className="font-semibold text-ink text-xs uppercase tracking-wider mb-3">Product</h5>
-              <ul className="space-y-2">
-                <li><a href="#transaction-section" className="hover:text-ink transition-colors">Expense Logger</a></li>
-                <li><a href="#transaction-section" className="hover:text-ink transition-colors">Ipon Stash Deposits</a></li>
-                <li><a href="#savings-goals" className="hover:text-ink transition-colors">Milestone Targets</a></li>
-                <li><a href="#visual-analytics" className="hover:text-ink transition-colors">7-Day Cash Flow</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-ink text-xs uppercase tracking-wider mb-3">Currencies</h5>
-              <ul className="space-y-2 font-mono text-[11px]">
-                <li>PHP (₱) · Philippine Peso</li>
-                <li>USD ($) · US Dollar</li>
-                <li>EUR (€) · Euro</li>
-                <li>JPY (¥) · Japanese Yen</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-ink text-xs uppercase tracking-wider mb-3">Security & Privacy</h5>
-              <ul className="space-y-2">
-                <li>Client-Side Storage</li>
-                <li>Zero Cloud Tracking</li>
-                <li>Clerk Authentication</li>
-                <li>JSON & CSV Backup</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-ink text-xs uppercase tracking-wider mb-3">System</h5>
-              <ul className="space-y-2 font-mono text-[11px]">
-                <li>PiggyVault OS 2.4</li>
-                <li>Inter Display 400</li>
-                <li>JetBrains Mono Tabular</li>
-                <li>Vite 8 & React 19</li>
-              </ul>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectView('expense');
+              }}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors cursor-pointer min-w-[56px] ${
+                currentView === 'expense'
+                  ? 'text-primary font-semibold'
+                  : 'text-slate-500 hover:text-slate-800 active:text-slate-900'
+              }`}
+            >
+              <TrendingDown className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Activity</span>
+            </button>
 
-          <div className="pt-8 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 font-mono text-[11px]">
-              <span className="font-semibold text-ink">PiggyVault</span>
-              <span>·</span>
-              <span>All records stored locally in browser storage</span>
-            </div>
-            <div className="text-[11px] text-muted font-normal">
-              Quiet institutional financial interface for smart ipon & budgeting.
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectView('dashboard');
+                setTimeout(() => {
+                  document.getElementById('visual-analytics')?.scrollIntoView?.({ behavior: 'smooth' });
+                }, 50);
+              }}
+              className="flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors cursor-pointer min-w-[56px] text-slate-500 hover:text-slate-800 active:text-slate-900"
+            >
+              <PieChart className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Analytics</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectView('goals');
+              }}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors cursor-pointer min-w-[56px] ${
+                currentView === 'goals'
+                  ? 'text-primary font-semibold'
+                  : 'text-slate-500 hover:text-slate-800 active:text-slate-900'
+              }`}
+            >
+              <Target className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Milestones</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectView('expense');
+                setTimeout(() => {
+                  const formElem = document.getElementById('transaction-section');
+                  formElem?.scrollIntoView?.({ behavior: 'smooth' });
+                  const amountInput = formElem?.querySelector('input[type="number"]') as HTMLInputElement | null;
+                  amountInput?.focus();
+                }, 50);
+              }}
+              className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-primary font-semibold transition-colors cursor-pointer min-w-[56px]"
+            >
+              <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-xs">
+                <PlusCircle className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] mt-0.5">Quick Log</span>
+            </button>
           </div>
-        </div>
-      </footer>
+        </nav>
+      </div>
 
       {/* Edit Transaction Modal */}
       <EditTransactionModal

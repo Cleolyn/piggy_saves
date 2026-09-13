@@ -75,6 +75,7 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    window.scrollTo = vi.fn();
     mockAuth = { isLoaded: true, isSignedIn: true, userId: 'user_123' };
   });
 
@@ -103,7 +104,11 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
   it('allows logging an expense in Mode A and recalculates totals from zero', () => {
     render(<App />);
 
-    // Mode A is default
+    // Navigate to Expense Tracking view via sidebar
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    fireEvent.click(within(sidebar).getByText('Expense Tracking'));
+
+    // Mode A is default in Expense Tracking
     const amountInput = screen.getByPlaceholderText('0.00');
     const titleInput = screen.getByPlaceholderText(/Grocery stock-up, Team Lunch/i);
     const destinationInput = screen.getByPlaceholderText(/Jollibee BGC, SM Supermarket/i);
@@ -127,9 +132,9 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
   it('allows switching to Mode B (Savings / Ipon) and depositing money to Piggy Bank', () => {
     render(<App />);
 
-    // Click Mode B tab
-    const savingsTabBtn = screen.getByRole('button', { name: /Mode B: Piggy Bank \/ Ipon/i });
-    fireEvent.click(savingsTabBtn);
+    // Navigate to Ipon Savings view via sidebar
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    fireEvent.click(within(sidebar).getByText('Ipon Savings'));
 
     // Form inputs
     const amountInput = screen.getByPlaceholderText('0.00');
@@ -150,6 +155,10 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
 
   it('filters dynamically added transactions using search input', () => {
     render(<App />);
+
+    // Navigate to Expense Tracking view via sidebar
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    fireEvent.click(within(sidebar).getByText('Expense Tracking'));
 
     const amountInput = screen.getByPlaceholderText('0.00');
     const titleInput = screen.getByPlaceholderText(/Grocery stock-up, Team Lunch/i);
@@ -189,6 +198,10 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
   it('supports deleting a transaction with instant update', () => {
     render(<App />);
 
+    // Navigate to Expense Tracking view via sidebar
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    fireEvent.click(within(sidebar).getByText('Expense Tracking'));
+
     const amountInput = screen.getByPlaceholderText('0.00');
     const titleInput = screen.getByPlaceholderText(/Grocery stock-up, Team Lunch/i);
     const destinationInput = screen.getByPlaceholderText(/Jollibee BGC, SM Supermarket/i);
@@ -213,4 +226,153 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
 
     expect(screen.queryByText('Temporary Coffee Purchase')).toBeNull();
   });
+
+  it('renders mobile navigation bar and supports mobile tab switching', () => {
+    render(<App />);
+
+    // Mobile bottom navigation bar is present
+    const mobileNav = screen.getByRole('navigation', { name: /Mobile Navigation/i });
+    expect(mobileNav).toBeDefined();
+
+    // Contains Activity, Analytics, Milestones, and Quick Log buttons
+    expect(within(mobileNav).getByText('Activity')).toBeDefined();
+    expect(within(mobileNav).getByText('Analytics')).toBeDefined();
+    expect(within(mobileNav).getByText('Milestones')).toBeDefined();
+    expect(within(mobileNav).getByText('Quick Log')).toBeDefined();
+
+    // Clicking Analytics in mobile nav switches to Cash Flow Analytics
+    const analyticsBtn = within(mobileNav).getByText('Analytics');
+    fireEvent.click(analyticsBtn);
+    expect(screen.getByText('Category Spending Breakdown')).toBeDefined();
+    expect(screen.getByText('7-Day Cash Flow Dynamics')).toBeDefined();
+
+    // Clicking Milestones in mobile nav switches to Target Milestones
+    const milestonesBtn = within(mobileNav).getByText('Milestones');
+    fireEvent.click(milestonesBtn);
+    expect(screen.getAllByText('Target Milestones').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Treasury Health').length).toBeGreaterThanOrEqual(1);
+
+    // Clicking Quick Log switches back to activity and focuses/targets transaction section
+    const quickLogBtn = within(mobileNav).getByText('Quick Log');
+    fireEvent.click(quickLogBtn);
+    expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
+  });
+
+  it('renders features sidebar with individual features and supports navigation and mode switching', () => {
+    render(<App />);
+
+    // Desktop features sidebar is mounted
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    expect(sidebar).toBeDefined();
+
+    // Verify all individual features are present in the sidebar
+    expect(within(sidebar).getByText('Treasury Horizons')).toBeDefined();
+    expect(within(sidebar).getByText('Expense Logger')).toBeDefined();
+    expect(within(sidebar).getByText('Piggy Bank Ipon')).toBeDefined();
+    expect(within(sidebar).getByText('Activity Ledger')).toBeDefined();
+    expect(within(sidebar).getByText('Cash Flow Analytics')).toBeDefined();
+    expect(within(sidebar).getByText('Target Milestones')).toBeDefined();
+    expect(within(sidebar).getByText('Treasury Health')).toBeDefined();
+
+    // Verify data backup/storage actions in sidebar
+    expect(within(sidebar).getByText('Export CSV')).toBeDefined();
+    expect(within(sidebar).getByText('Export JSON Backup')).toBeDefined();
+    expect(within(sidebar).getByText('Import Backup')).toBeDefined();
+    expect(within(sidebar).getByText('Clear All Data')).toBeDefined();
+
+    // Clicking 'Piggy Bank Ipon' in sidebar switches form to Mode B
+    const iponFeatureBtn = within(sidebar).getByText('Piggy Bank Ipon');
+    fireEvent.click(iponFeatureBtn);
+    expect(screen.getByRole('button', { name: /Deposit to Piggy Bank/i })).toBeDefined();
+
+    // Clicking 'Cash Flow Analytics' in sidebar switches view to analytics
+    const analyticsFeatureBtn = within(sidebar).getByText('Cash Flow Analytics');
+    fireEvent.click(analyticsFeatureBtn);
+    expect(screen.getByText('Category Spending Breakdown')).toBeDefined();
+
+    // Clicking 'Expense Logger' switches view back to activity in Mode A
+    const expenseFeatureBtn = within(sidebar).getByText('Expense Logger');
+    fireEvent.click(expenseFeatureBtn);
+    expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
+  });
+
+  it('supports opening and interacting with the mobile features sidebar drawer', () => {
+    render(<App />);
+
+    // Trigger mobile drawer via header menu button
+    const menuBtn = screen.getByRole('button', { name: /Open Features Sidebar/i });
+    expect(menuBtn).toBeDefined();
+
+    fireEvent.click(menuBtn);
+
+    // Mobile drawer dialog is opened
+    const mobileDrawer = screen.getByRole('dialog', { name: /Mobile Features Sidebar/i });
+    expect(mobileDrawer).toBeDefined();
+    expect(within(mobileDrawer).getByText('Features Navigation')).toBeDefined();
+    expect(within(mobileDrawer).getByText('Cash Flow Analytics')).toBeDefined();
+
+    // Close button dismisses the mobile drawer
+    const closeBtn = within(mobileDrawer).getByRole('button', { name: /Close sidebar/i });
+    fireEvent.click(closeBtn);
+
+    expect(screen.queryByRole('dialog', { name: /Mobile Features Sidebar/i })).toBeNull();
+  });
+
+  it('supports collapsing desktop sidebar into an icon rail and expanding it back', () => {
+    render(<App />);
+
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    expect(sidebar).toBeDefined();
+
+    // In expanded mode, full titles are visible
+    expect(within(sidebar).getByText('Dashboard / Overview')).toBeDefined();
+
+    // Click collapse button in sidebar
+    const collapseBtn = within(sidebar).getByRole('button', { name: /Collapse sidebar/i });
+    fireEvent.click(collapseBtn);
+
+    // Sidebar is now in collapsed rail mode
+    const expandBtn = within(sidebar).getAllByRole('button', { name: /Expand sidebar/i })[0];
+    expect(expandBtn).toBeDefined();
+    // Labels are hidden in collapsed icon rail
+    expect(within(sidebar).queryByText('Dashboard / Overview')).toBeNull();
+
+    // Clicking expand button restores expanded mode
+    fireEvent.click(expandBtn);
+    expect(within(sidebar).getByText('Dashboard / Overview')).toBeDefined();
+  });
+
+  it('navigates cleanly across all 5 dedicated feature pages with updated header breadcrumbs', () => {
+    render(<App />);
+
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+
+    // 1. Initial view: Dashboard / Overview
+    expect(screen.getByText('Dashboard Overview')).toBeDefined();
+    expect(screen.getAllByText('Treasury Horizons').length).toBeGreaterThanOrEqual(1);
+
+    // 2. Navigate to Expense Tracking
+    fireEvent.click(within(sidebar).getByText('Expense Tracking'));
+    expect(screen.getAllByText('Mode A').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
+    expect(screen.getByText('Spending Horizons')).toBeDefined();
+
+    // 3. Navigate to Ipon Savings
+    fireEvent.click(within(sidebar).getByText('Ipon Savings'));
+    expect(screen.getAllByText('Mode B').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /Deposit to Piggy Bank/i })).toBeDefined();
+    expect(screen.getByText('Accumulated Capital Stash')).toBeDefined();
+
+    // 4. Navigate to Milestone Goals
+    fireEvent.click(within(sidebar).getByText('Milestone Goals'));
+    expect(screen.getAllByRole('heading', { name: /Target Milestones/i }).length).toBeGreaterThanOrEqual(1);
+
+    // 5. Navigate to Settings & Auth Management
+    fireEvent.click(within(sidebar).getByText('Settings & Auth'));
+    expect(screen.getByText('Settings & Auth Management')).toBeDefined();
+    expect(screen.getByText('Session & Identity')).toBeDefined();
+    expect(screen.getByText('Regional Currency')).toBeDefined();
+    expect(screen.getByText('Data Backup & Recovery')).toBeDefined();
+  });
 });
+

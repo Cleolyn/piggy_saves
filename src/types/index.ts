@@ -1,4 +1,5 @@
 export type TransactionType = 'EXPENSE' | 'SAVINGS';
+export type MainView = 'dashboard' | 'expense' | 'savings' | 'goals' | 'settings';
 
 export interface Transaction {
   id: string;

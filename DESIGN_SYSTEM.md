@@ -276,17 +276,23 @@ Pill for interactive buttons, card-radius (24px) for containers, full circle for
 | Desktop | 1024–1280px | Full hero h1 80px; dual transaction form 7-col / 5-col split; metric cards 4-up; full transaction row layout. |
 | Wide | > 1280px | Content caps at 1200px; hero elements full-bleed. |
 
-### Touch Targets
-- Primary CTA pill at 44px height — at WCAG AAA.
+### Touch Targets & Mobile Ergonomics
+- Primary CTA pill at 44px–48px height — at WCAG AAA.
 - Larger hero pill (`{component.button-pill-cta}`) at 56px — well above AAA.
-- Category icon circles at 32px — padded 8px row creates effective 48px tap zone.
-- Search pill at 44px height — at AAA.
+- Category icon circles at 32px — padded row creates effective 44px tap zone.
+- Search pill and filter toggles at 42px–44px height — at AAA.
+- Mobile bottom navigation bar at 56px + safe-area padding (`pb-safe`) for thumb-zone navigation.
+- Numeric amount inputs equipped with `inputMode="decimal"` for native virtual keypads.
+- Input font size locked to min 16px on mobile viewports to prevent iOS Safari auto-zoom.
 
 ### Collapsing Strategy
-- Top nav switches to compact layout below 768px. Sign Up and User Button stay visible.
+- Top nav switches to compact layout below 768px. Live Ipon Stash, Currency, and User Button stay visible.
+- Mobile bottom navigation bar displays on screens `< 1024px` with 4 thumb-accessible actions: Activity, Analytics, Milestones, and Quick Log.
+- Metric cards adopt a balanced 2-column mobile layout: full-width Total Ipon Hero card + 2x2 secondary horizon grid.
+- Modals adopt slide-up bottom-sheet architecture on `< 640px` with safe-area padding.
 - Hero h1 steps down: 80 → 64 → 52 → 44 → 36px on smallest screens.
 - Layered product-UI mockup cards collapse from 2 stacked into a single card on mobile.
-- Transaction rows on mobile stack vertically: title and merchant on top, amount and timestamp beneath.
+- Transaction rows on mobile stack vertically: title and merchant on top, amount and timestamp beneath with visible touch edit/delete triggers.
 
 ---
 

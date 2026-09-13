@@ -7,6 +7,20 @@ vi.mock('canvas-confetti', () => ({
   default: vi.fn(),
 }));
 
+// Mock @clerk/react
+vi.mock('@clerk/react', () => ({
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
+  Show: ({ when, children }: { when: string; children: React.ReactNode }) => {
+    if (when === 'signed-out') return children;
+    return null;
+  },
+  SignInButton: ({ children }: { children?: React.ReactNode }) => children || <button>Sign In</button>,
+  SignUpButton: ({ children }: { children?: React.ReactNode }) => children || <button>Sign Up</button>,
+  UserButton: () => <button data-testid="user-button">User</button>,
+  useUser: () => ({ isSignedIn: false, user: null }),
+  useAuth: () => ({ isLoaded: true, isSignedIn: false, userId: null }),
+}));
+
 describe('PiggyVault App Integration', () => {
   beforeEach(() => {
     localStorage.clear();

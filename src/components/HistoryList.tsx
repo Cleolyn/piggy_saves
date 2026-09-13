@@ -55,50 +55,50 @@ export const HistoryList: React.FC<HistoryListProps> = ({
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <div className="bg-canvas rounded-xl border border-hairline shadow-xs overflow-hidden">
       {/* Header & Main Search */}
-      <div className="p-5 border-b border-slate-200">
+      <div className="p-6 border-b border-hairline">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+            <h2 className="text-base font-semibold text-ink flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4 text-muted" />
               Transaction History & Log
-              <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="text-xs px-2.5 py-0.5 rounded-pill font-mono font-medium bg-surface-strong text-ink border border-hairline">
                 {transactions.length} {transactions.length === 1 ? 'record' : 'records'}
               </span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               Filterable transaction feed with automated precise timestamps
             </p>
           </div>
 
           {/* Quick summary badges */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-mono font-semibold">
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <span className="px-3 py-1 rounded-pill bg-surface-soft border border-hairline text-semantic-down font-medium">
               -{formatCurrency(totalFilteredExpenses, currency)}
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono font-semibold">
+            <span className="px-3 py-1 rounded-pill bg-surface-soft border border-hairline text-semantic-up font-medium">
               +{formatCurrency(totalFilteredSavings, currency)}
             </span>
           </div>
         </div>
 
         {/* Search Input and Filter Toggle */}
-        <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={filter.searchQuery}
               onChange={(e) => onFilterChange({ searchQuery: e.target.value })}
               placeholder="Search by title, merchant/destination, category, or amount..."
-              className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-slate-50/50"
+              className="w-full pl-11 pr-9 py-2.5 text-xs sm:text-sm rounded-pill border border-hairline text-ink placeholder:text-muted bg-surface-strong/60 focus:bg-canvas focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             />
             {filter.searchQuery && (
               <button
                 type="button"
                 onClick={() => onFilterChange({ searchQuery: '' })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -110,28 +110,28 @@ export const HistoryList: React.FC<HistoryListProps> = ({
             <button
               type="button"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-pill border transition-colors cursor-pointer ${
                 showAdvancedFilters || filter.category !== 'ALL' || filter.timeRange !== 'ALL'
-                  ? 'bg-slate-900 text-white border-slate-900'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                  ? 'bg-ink text-canvas border-ink'
+                  : 'bg-surface-strong text-ink border-hairline hover:bg-hairline'
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
               <span>Filters</span>
               {(filter.category !== 'ALL' || filter.timeRange !== 'ALL') && (
-                <span className="w-2 h-2 rounded-full bg-rose-500 ml-0.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary ml-0.5" />
               )}
             </button>
 
             {/* Sort Selector */}
-            <div className="flex items-center gap-1 bg-slate-100 rounded-xl px-2 py-1 border border-slate-200">
-              <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+            <div className="flex items-center gap-1 bg-surface-strong rounded-pill px-3 py-1.5 border border-hairline">
+              <ArrowUpDown className="w-3.5 h-3.5 text-muted" />
               <select
                 value={filter.sortBy}
                 onChange={(e) =>
                   onFilterChange({ sortBy: e.target.value as FilterState['sortBy'] })
                 }
-                className="text-xs font-semibold bg-transparent text-slate-800 focus:outline-none cursor-pointer py-1"
+                className="text-xs font-medium bg-transparent text-ink focus:outline-none cursor-pointer py-0.5 font-mono"
               >
                 <option value="date-desc">Newest First</option>
                 <option value="date-asc">Oldest First</option>
@@ -144,14 +144,14 @@ export const HistoryList: React.FC<HistoryListProps> = ({
         </div>
 
         {/* Quick Type Filter Tabs */}
-        <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1">
+        <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
           <button
             type="button"
             onClick={() => onFilterChange({ type: 'ALL' })}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-pill text-xs font-medium transition-all shrink-0 cursor-pointer ${
               filter.type === 'ALL'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-ink text-canvas shadow-xs'
+                : 'bg-surface-strong text-muted hover:text-ink'
             }`}
           >
             All Types
@@ -159,10 +159,10 @@ export const HistoryList: React.FC<HistoryListProps> = ({
           <button
             type="button"
             onClick={() => onFilterChange({ type: 'EXPENSE' })}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-pill text-xs font-medium transition-all shrink-0 flex items-center gap-1 cursor-pointer border ${
               filter.type === 'EXPENSE'
-                ? 'bg-rose-600 text-white shadow-xs'
-                : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200/60'
+                ? 'bg-ink text-canvas border-ink shadow-xs'
+                : 'bg-surface-soft text-semantic-down border-hairline hover:bg-surface-strong'
             }`}
           >
             <TrendingDown className="w-3 h-3" /> Expenses Only
@@ -170,10 +170,10 @@ export const HistoryList: React.FC<HistoryListProps> = ({
           <button
             type="button"
             onClick={() => onFilterChange({ type: 'SAVINGS' })}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-pill text-xs font-medium transition-all shrink-0 flex items-center gap-1 cursor-pointer border ${
               filter.type === 'SAVINGS'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/60'
+                ? 'bg-ink text-canvas border-ink shadow-xs'
+                : 'bg-surface-soft text-semantic-up border-hairline hover:bg-surface-strong'
             }`}
           >
             <PiggyBank className="w-3 h-3" /> Savings Deposits Only
@@ -182,10 +182,10 @@ export const HistoryList: React.FC<HistoryListProps> = ({
 
         {/* Advanced Filters Drawer */}
         {showAdvancedFilters && (
-          <div className="mt-3 pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/70 p-3 rounded-xl">
+          <div className="mt-4 pt-4 border-t border-hairline grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-surface-soft/80 p-4 rounded-xl border">
             {/* Time Range Filter */}
             <div>
-              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
+              <label className="block text-[11px] font-semibold uppercase text-muted mb-1.5">
                 Time Horizon
               </label>
               <select
@@ -193,7 +193,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                 onChange={(e) =>
                   onFilterChange({ timeRange: e.target.value as FilterState['timeRange'] })
                 }
-                className="w-full text-xs rounded-lg border border-slate-300 p-2 bg-white text-slate-800"
+                className="w-full text-xs rounded-xl border border-hairline p-2.5 bg-canvas text-ink"
               >
                 <option value="ALL">All Time</option>
                 <option value="TODAY">Today Only</option>
@@ -205,13 +205,13 @@ export const HistoryList: React.FC<HistoryListProps> = ({
 
             {/* Category Filter */}
             <div>
-              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
+              <label className="block text-[11px] font-semibold uppercase text-muted mb-1.5">
                 Category
               </label>
               <select
                 value={filter.category}
                 onChange={(e) => onFilterChange({ category: e.target.value })}
-                className="w-full text-xs rounded-lg border border-slate-300 p-2 bg-white text-slate-800"
+                className="w-full text-xs rounded-xl border border-hairline p-2.5 bg-canvas text-ink"
               >
                 <option value="ALL">All Categories</option>
                 {availableCategories.map((c) => (
@@ -226,21 +226,21 @@ export const HistoryList: React.FC<HistoryListProps> = ({
             {filter.timeRange === 'CUSTOM' && (
               <div className="sm:col-span-3 grid grid-cols-2 gap-2 mt-1">
                 <div>
-                  <label className="block text-[10px] text-slate-500 font-semibold mb-0.5">Start Date</label>
+                  <label className="block text-[10px] text-muted font-semibold mb-0.5">Start Date</label>
                   <input
                     type="date"
                     value={filter.startDate || ''}
                     onChange={(e) => onFilterChange({ startDate: e.target.value })}
-                    className="w-full text-xs rounded-lg border border-slate-300 p-1.5 bg-white text-slate-800"
+                    className="w-full text-xs rounded-xl border border-hairline p-2 bg-canvas text-ink font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 font-semibold mb-0.5">End Date</label>
+                  <label className="block text-[10px] text-muted font-semibold mb-0.5">End Date</label>
                   <input
                     type="date"
                     value={filter.endDate || ''}
                     onChange={(e) => onFilterChange({ endDate: e.target.value })}
-                    className="w-full text-xs rounded-lg border border-slate-300 p-1.5 bg-white text-slate-800"
+                    className="w-full text-xs rounded-xl border border-hairline p-2 bg-canvas text-ink font-mono"
                   />
                 </div>
               </div>
@@ -260,7 +260,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                     endDate: undefined,
                   })
                 }
-                className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
+                className="text-xs text-primary hover:text-primary-active font-medium cursor-pointer"
               >
                 Reset All Filters
               </button>
@@ -270,14 +270,14 @@ export const HistoryList: React.FC<HistoryListProps> = ({
       </div>
 
       {/* Transactions Feed / Table */}
-      <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+      <div className="divide-y divide-hairline max-h-[600px] overflow-y-auto">
         {transactions.length === 0 ? (
           <div className="py-16 text-center px-4">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
-              <Search className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-full bg-surface-strong flex items-center justify-center text-muted mx-auto mb-3">
+              <Search className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-slate-800">No transactions found</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+            <h3 className="text-sm font-semibold text-ink">No transactions found</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto mt-1">
               Try adjusting your search query, clearing filters, or log a new expense or piggy bank deposit above.
             </p>
           </div>
@@ -287,73 +287,61 @@ export const HistoryList: React.FC<HistoryListProps> = ({
             return (
               <div
                 key={tx.id}
-                className="p-4 sm:p-4.5 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                className="p-4 sm:p-5 hover:bg-surface-soft/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
-                {/* Left Side: Type Icon, Title, Destination, Category, Timestamp */}
-                <div className="flex items-start gap-3 min-w-0">
-                  <div
-                    className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center font-bold text-base shadow-xs ${
-                      isExpense
-                        ? 'bg-rose-50 text-rose-600 border border-rose-200/80'
-                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
-                    }`}
-                  >
+                {/* Left Side: Type Icon Plate, Title, Destination, Category, Timestamp */}
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-surface-strong text-ink border border-hairline">
                     {isExpense ? (
-                      <TrendingDown className="w-5 h-5" />
+                      <TrendingDown className="w-4 h-4 text-semantic-down" />
                     ) : (
-                      <PiggyBank className="w-5 h-5" />
+                      <PiggyBank className="w-4 h-4 text-primary" />
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <h4 className="text-sm font-bold text-slate-900 truncate">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-sm font-semibold text-ink truncate">
                         {tx.title}
                       </h4>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                          isExpense
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-pill uppercase tracking-wider bg-surface-strong text-muted border border-hairline">
                         {isExpense ? 'Expense' : 'Ipon Deposit'}
                       </span>
                       {tx.category && (
-                        <span className="inline-flex items-center text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                          <Tag className="w-2.5 h-2.5 mr-1 text-slate-400" />
+                        <span className="inline-flex items-center text-[11px] font-medium text-body bg-surface-soft px-2 py-0.5 rounded-pill border border-hairline">
+                          <Tag className="w-2.5 h-2.5 mr-1 text-muted" />
                           {tx.category}
                         </span>
                       )}
                     </div>
 
                     {/* Metadata line: Destination, Exact Timestamp, Friendly Date */}
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                       {tx.destination && (
-                        <span className="flex items-center gap-1 text-slate-600 font-medium truncate max-w-xs">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="flex items-center gap-1 text-body font-normal truncate max-w-xs">
+                          <MapPin className="w-3 h-3 text-muted shrink-0" />
                           {tx.destination}
                         </span>
                       )}
 
                       {/* Precise Timestamp */}
                       <span
-                        className="flex items-center gap-1 font-mono text-slate-500 text-[11px]"
+                        className="flex items-center gap-1 font-mono text-muted text-[11px]"
                         title={`Precise Log: ${formatExactTimestamp(tx.timestamp)}`}
                       >
-                        <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Clock className="w-3 h-3 text-muted shrink-0" />
                         {formatExactTimestamp(tx.timestamp)}
                       </span>
 
                       {/* Friendly relative date */}
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-muted">
                         ({formatFriendlyDate(tx.timestamp)})
                       </span>
                     </div>
 
                     {/* Notes if present */}
                     {tx.notes && (
-                      <p className="mt-1 text-xs text-slate-500 italic bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                      <p className="mt-1.5 text-xs text-muted italic bg-surface-soft px-2.5 py-1 rounded-xl border border-hairline">
                         "{tx.notes}"
                       </p>
                     )}
@@ -361,10 +349,10 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                 </div>
 
                 {/* Right Side: Amount & Action Buttons */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline">
                   <div
-                    className={`font-mono font-extrabold text-base sm:text-lg tracking-tight ${
-                      isExpense ? 'text-rose-600' : 'text-emerald-700'
+                    className={`font-mono font-medium text-base sm:text-lg tracking-tight ${
+                      isExpense ? 'text-semantic-down' : 'text-semantic-up'
                     }`}
                   >
                     {isExpense ? '-' : '+'}
@@ -372,11 +360,11 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   </div>
 
                   {/* Actions: Edit & Delete */}
-                  <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       onClick={() => onEdit(tx)}
-                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-1.5 text-muted hover:text-ink hover:bg-surface-strong rounded-pill transition-colors cursor-pointer"
                       title="Edit entry"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -392,7 +380,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                           onDelete(tx.id);
                         }
                       }}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-1.5 text-muted hover:text-semantic-down hover:bg-surface-strong rounded-pill transition-colors cursor-pointer"
                       title="Delete entry"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

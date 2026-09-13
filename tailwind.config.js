@@ -8,6 +8,32 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: {
+          DEFAULT: '#e11d48', // Vault Rose
+          active: '#be123c',
+          disabled: '#f4a7b9',
+        },
+        'accent-yellow': '#f4b000', // Ipon Gold
+        canvas: '#ffffff',
+        'surface-soft': '#f7f7f7',
+        'surface-strong': '#eef0f3',
+        'surface-dark': '#0a0b0d',
+        'surface-dark-elevated': '#16181c',
+        hairline: {
+          DEFAULT: '#dee1e6',
+          soft: '#eef0f3',
+        },
+        ink: '#0a0b0d',
+        body: {
+          DEFAULT: '#5b616e',
+          strong: '#0a0b0d',
+        },
+        muted: {
+          DEFAULT: '#7c828a',
+          soft: '#a8acb3',
+        },
+        'semantic-up': '#05b169',
+        'semantic-down': '#cf202f',
         piggy: {
           50: '#fff1f2',
           100: '#ffe4e6',
@@ -32,6 +58,18 @@ export default {
           800: '#166534',
           900: '#14532d',
         }
+      },
+      fontFamily: {
+        display: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Geist Mono', 'ui-monospace', 'monospace'],
+      },
+      borderRadius: {
+        pill: '100px',
+        xl: '24px',
+      },
+      boxShadow: {
+        'soft-drop': '0 4px 12px rgba(0, 0, 0, 0.04)',
       },
       animation: {
         'bounce-short': 'bounce 0.5s ease-in-out 1',

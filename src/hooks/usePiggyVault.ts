@@ -208,7 +208,7 @@ export function usePiggyVault() {
     const res = resetToDefaults();
     setTransactions(res.transactions);
     setSavingsGoals(res.goals);
-    showToast('Dashboard restored to default sample data', 'info');
+    showToast('Dashboard reset to clean slate', 'info');
   }, [showToast]);
 
   const handleClearData = useCallback(() => {

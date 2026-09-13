@@ -1,29 +1,28 @@
 import type { Transaction, SavingsGoal, CurrencyCode } from '../types';
-import { INITIAL_TRANSACTIONS, INITIAL_SAVINGS_GOALS } from './sampleData';
 
 const KEYS = {
-  TRANSACTIONS: 'piggyvault_transactions_v1',
-  GOALS: 'piggyvault_goals_v1',
-  CURRENCY: 'piggyvault_currency_v1',
-  THEME: 'piggyvault_theme_v1',
+  TRANSACTIONS: 'piggyvault_v2_transactions',
+  GOALS: 'piggyvault_v2_goals',
+  CURRENCY: 'piggyvault_v2_currency',
+  THEME: 'piggyvault_v2_theme',
 };
 
 export function loadTransactions(): Transaction[] {
   try {
     const raw = localStorage.getItem(KEYS.TRANSACTIONS);
     if (!raw) {
-      // First time initialization: populate sample data
-      localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
-      return INITIAL_TRANSACTIONS;
+      // First time initialization: clean fresh start
+      localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify([]));
+      return [];
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed;
     }
-    return INITIAL_TRANSACTIONS;
+    return [];
   } catch (err) {
     console.error('Failed to load transactions from localStorage:', err);
-    return INITIAL_TRANSACTIONS;
+    return [];
   }
 }
 
@@ -39,17 +38,17 @@ export function loadSavingsGoals(): SavingsGoal[] {
   try {
     const raw = localStorage.getItem(KEYS.GOALS);
     if (!raw) {
-      localStorage.setItem(KEYS.GOALS, JSON.stringify(INITIAL_SAVINGS_GOALS));
-      return INITIAL_SAVINGS_GOALS;
+      localStorage.setItem(KEYS.GOALS, JSON.stringify([]));
+      return [];
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed;
     }
-    return INITIAL_SAVINGS_GOALS;
+    return [];
   } catch (err) {
     console.error('Failed to load savings goals from localStorage:', err);
-    return INITIAL_SAVINGS_GOALS;
+    return [];
   }
 }
 
@@ -83,14 +82,14 @@ export function saveCurrency(currency: CurrencyCode): void {
 
 export function resetToDefaults(): { transactions: Transaction[]; goals: SavingsGoal[] } {
   try {
-    localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
-    localStorage.setItem(KEYS.GOALS, JSON.stringify(INITIAL_SAVINGS_GOALS));
+    localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify([]));
+    localStorage.setItem(KEYS.GOALS, JSON.stringify([]));
   } catch (err) {
     console.error('Failed to reset storage:', err);
   }
   return {
-    transactions: INITIAL_TRANSACTIONS,
-    goals: INITIAL_SAVINGS_GOALS,
+    transactions: [],
+    goals: [],
   };
 }
 

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useAuth } from '@clerk/react';
+import { LandingPage } from './components/LandingPage';
 import { Header } from './components/Header';
 import { MetricCards } from './components/MetricCards';
 import { TransactionForm } from './components/TransactionForm';
@@ -10,9 +12,12 @@ import { ToastContainer } from './components/Toast';
 import { usePiggyVault } from './hooks/usePiggyVault';
 import type { Transaction } from './types';
 import { formatCurrency } from './utils/formatters';
+import { saveTransactions, saveSavingsGoals } from './utils/storage';
 import { ArrowRight, PiggyBank } from 'lucide-react';
 
 export function App() {
+  const { isLoaded, isSignedIn } = useAuth();
+
   const {
     transactions,
     savingsGoals,
@@ -33,17 +38,35 @@ export function App() {
     addSavingsGoal,
     updateSavingsGoal,
     deleteSavingsGoal,
-    resetToDefaults,
     clearAllData,
   } = usePiggyVault();
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const handleImportData = (newTransactions: Transaction[], newGoals: typeof savingsGoals) => {
-    localStorage.setItem('piggyvault_transactions_v1', JSON.stringify(newTransactions));
-    localStorage.setItem('piggyvault_goals_v1', JSON.stringify(newGoals));
+    saveTransactions(newTransactions);
+    saveSavingsGoals(newGoals);
     window.location.reload();
   };
+
+  // Loading state while Clerk initializes session
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-canvas text-ink flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-surface-strong border border-hairline flex items-center justify-center text-primary animate-pulse">
+            <PiggyBank className="w-5 h-5" />
+          </div>
+          <p className="text-xs font-mono text-muted">Authenticating PiggyVault...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Auth Wall: Unauthenticated visitors only see the clean landing page
+  if (!isSignedIn) {
+    return <LandingPage />;
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
@@ -55,7 +78,6 @@ export function App() {
         savingsRate={metrics.savingsRate}
         transactions={transactions}
         savingsGoals={savingsGoals}
-        onResetData={resetToDefaults}
         onClearData={clearAllData}
         onImportData={handleImportData}
         showToast={showToast}
@@ -243,17 +265,11 @@ export function App() {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <a
               href="#transaction-section"
-              className="px-7 py-3.5 rounded-pill text-sm font-semibold text-white bg-primary hover:bg-primary-active transition-all cursor-pointer shadow-xs"
+              className="px-7 py-3.5 rounded-pill text-sm font-semibold text-white bg-primary hover:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center gap-2"
             >
-              Start Your Ipon Stash
+              <span>Start Your Ipon Stash</span>
+              <ArrowRight className="w-4 h-4" />
             </a>
-            <button
-              type="button"
-              onClick={resetToDefaults}
-              className="px-7 py-3.5 rounded-pill text-sm font-semibold text-white bg-surface-dark-elevated hover:bg-white/10 border border-white/15 transition-all cursor-pointer"
-            >
-              Load Demo Workspace
-            </button>
           </div>
         </div>
       </section>

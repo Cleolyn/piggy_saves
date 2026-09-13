@@ -7,47 +7,100 @@ vi.mock('canvas-confetti', () => ({
   default: vi.fn(),
 }));
 
+// Mutable auth state for tests
+let mockAuth = {
+  isLoaded: true,
+  isSignedIn: false,
+  userId: null as string | null,
+};
+
 // Mock @clerk/react
 vi.mock('@clerk/react', () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
   Show: ({ when, children }: { when: string; children: React.ReactNode }) => {
-    if (when === 'signed-out') return children;
+    if (when === 'signed-out' && !mockAuth.isSignedIn) return children;
+    if (when === 'signed-in' && mockAuth.isSignedIn) return children;
     return null;
   },
   SignInButton: ({ children }: { children?: React.ReactNode }) => children || <button>Sign In</button>,
   SignUpButton: ({ children }: { children?: React.ReactNode }) => children || <button>Sign Up</button>,
   UserButton: () => <button data-testid="user-button">User</button>,
-  useUser: () => ({ isSignedIn: false, user: null }),
-  useAuth: () => ({ isLoaded: true, isSignedIn: false, userId: null }),
+  useUser: () => ({
+    isSignedIn: mockAuth.isSignedIn,
+    user: mockAuth.isSignedIn ? { id: mockAuth.userId } : null,
+  }),
+  useAuth: () => mockAuth,
 }));
 
-describe('PiggyVault App Integration', () => {
+describe('PiggyVault Authentication Wall & Landing Page', () => {
   beforeEach(() => {
     localStorage.clear();
-    // mock window.confirm to return true
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    mockAuth = { isLoaded: true, isSignedIn: false, userId: null };
   });
 
-  it('renders the dashboard header, title, and initial sample data', () => {
+  it('renders the clean unauthenticated landing page with overview and auth triggers', () => {
     render(<App />);
 
-    // App title
+    // Brand mark & title
     expect(screen.getAllByText(/Piggy/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Vault/i).length).toBeGreaterThan(0);
 
-    // Summary Metric Cards
-    expect(screen.getByText(/Total Ipon/i)).toBeDefined();
-    expect(screen.getByText(/Past 24h Spending/i)).toBeDefined();
-    expect(screen.getByText(/Weekly Spending/i)).toBeDefined();
-    expect(screen.getByText(/Monthly Spending/i)).toBeDefined();
-    expect(screen.getAllByText(/Cash Flow/i).length).toBeGreaterThan(0);
+    // Clean product description and headline
+    expect(
+      screen.getByText(/Personal budgeting & disciplined ipon savings, simplified\./i)
+    ).toBeDefined();
+    expect(
+      screen.getByText(/PiggyVault is an institutional personal finance and savings companion\./i)
+    ).toBeDefined();
 
-    // Initial dummy data presence
-    expect(screen.getByText(/Lunch with Colleagues/i)).toBeDefined();
-    expect(screen.getByText(/Daily Coin Jar \/ Ipon Deposit/i)).toBeDefined();
+    // Informational feature cards (static overview)
+    expect(screen.getByText(/Multi-Horizon Expense Logging/i)).toBeDefined();
+    expect(screen.getByText(/Dedicated Piggy Bank Ipon/i)).toBeDefined();
+    expect(screen.getByText(/Milestone Targets & Goals/i)).toBeDefined();
+    expect(screen.getByText(/Client-Side Privacy & Export/i)).toBeDefined();
+
+    // Sign in and Sign up triggers
+    expect(screen.getAllByRole('button', { name: /Sign In/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /Sign Up/i }).length).toBeGreaterThan(0);
+
+    // Auth Wall: Interactive dashboard components must NOT be accessible to unauthenticated users
+    expect(screen.queryByPlaceholderText(/0\.00/i)).toBeNull();
+    expect(screen.queryByRole('button', { name: /Log Expense Entry/i })).toBeNull();
+    expect(screen.queryByText(/Treasury Horizons/i)).toBeNull();
+    expect(screen.queryByText(/Historical Audit Trail/i)).toBeNull();
+  });
+});
+
+describe('PiggyVault Protected Dashboard (Authenticated)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    mockAuth = { isLoaded: true, isSignedIn: true, userId: 'user_123' };
   });
 
-  it('allows logging an expense in Mode A and recalculates totals', () => {
+  it('initializes to a completely fresh start state with zeroes and empty lists', () => {
+    render(<App />);
+
+    // Dashboard Header and user controls
+    expect(screen.getByTestId('user-button')).toBeDefined();
+
+    // Stat cards initialize to zero
+    expect(screen.getByText(/Total Ipon/i)).toBeDefined();
+    expect(screen.getAllByText('₱0.00').length).toBeGreaterThan(0);
+
+    // Rate starts at 0%
+    expect(screen.getAllByText(/0%/i).length).toBeGreaterThan(0);
+
+    // Zero sample data presence
+    expect(screen.queryByText('Lunch with Colleagues')).toBeNull();
+    expect(screen.queryByText('Daily Coin Jar / Ipon Deposit')).toBeNull();
+
+    // Empty list states
+    expect(screen.getByText(/No savings goals created yet\./i)).toBeDefined();
+    expect(screen.getByText(/No transactions found/i)).toBeDefined();
+  });
+
+  it('allows logging an expense in Mode A and recalculates totals from zero', () => {
     render(<App />);
 
     // Mode A is default
@@ -95,36 +148,69 @@ describe('PiggyVault App Integration', () => {
     expect(screen.getByText(/Blue Ceramic Piggy Bank/i)).toBeDefined();
   });
 
-  it('filters transaction history using search input', () => {
+  it('filters dynamically added transactions using search input', () => {
     render(<App />);
 
-    const searchInput = screen.getByPlaceholderText(/Search by title, merchant\/destination/i);
+    const amountInput = screen.getByPlaceholderText('0.00');
+    const titleInput = screen.getByPlaceholderText(/Grocery stock-up, Team Lunch/i);
+    const destinationInput = screen.getByPlaceholderText(/Jollibee BGC, SM Supermarket/i);
+    const categorySelect = screen.getByLabelText(/Category Selection/i);
+    const submitBtn = screen.getByRole('button', { name: /Log Expense Entry/i });
 
-    // Filter by unique keyword
+    // Add first transaction
+    fireEvent.change(amountInput, { target: { value: '120.00' } });
+    fireEvent.change(titleInput, { target: { value: 'Special Jollibee Meal' } });
+    fireEvent.change(destinationInput, { target: { value: 'Jollibee Drive Thru' } });
+    fireEvent.change(categorySelect, { target: { value: 'Food & Dining' } });
+    fireEvent.click(submitBtn);
+
+    // Add second transaction
+    fireEvent.change(amountInput, { target: { value: '500.00' } });
+    fireEvent.change(titleInput, { target: { value: 'Fiber Internet Bill' } });
+    fireEvent.change(destinationInput, { target: { value: 'PLDT Portal' } });
+    fireEvent.change(categorySelect, { target: { value: 'Utilities & Bills' } });
+    fireEvent.click(submitBtn);
+
+    expect(screen.getByText('Special Jollibee Meal')).toBeDefined();
+    expect(screen.getByText('Fiber Internet Bill')).toBeDefined();
+
+    // Filter by 'Jollibee'
+    const searchInput = screen.getByPlaceholderText(/Search by title, merchant\/destination/i);
     fireEvent.change(searchInput, { target: { value: 'Jollibee' } });
 
-    expect(screen.getByText('Lunch with Colleagues')).toBeDefined();
-    // Entries not matching shouldn't be in the filtered list
-    expect(screen.queryByText('Fiber Internet Subscription')).toBeNull();
+    expect(screen.getByText('Special Jollibee Meal')).toBeDefined();
+    expect(screen.queryByText('Fiber Internet Bill')).toBeNull();
 
     // Clear search
     fireEvent.change(searchInput, { target: { value: '' } });
-    expect(screen.getByText('Fiber Internet Subscription')).toBeDefined();
+    expect(screen.getByText('Fiber Internet Bill')).toBeDefined();
   });
 
   it('supports deleting a transaction with instant update', () => {
     render(<App />);
 
-    // Target the specific transaction card for 'Lunch with Colleagues'
-    const titleElem = screen.getByText('Lunch with Colleagues');
-    // Find its container card
+    const amountInput = screen.getByPlaceholderText('0.00');
+    const titleInput = screen.getByPlaceholderText(/Grocery stock-up, Team Lunch/i);
+    const destinationInput = screen.getByPlaceholderText(/Jollibee BGC, SM Supermarket/i);
+    const categorySelect = screen.getByLabelText(/Category Selection/i);
+    const submitBtn = screen.getByRole('button', { name: /Log Expense Entry/i });
+
+    // Add transaction to delete
+    fireEvent.change(amountInput, { target: { value: '350.00' } });
+    fireEvent.change(titleInput, { target: { value: 'Temporary Coffee Purchase' } });
+    fireEvent.change(destinationInput, { target: { value: 'Starbucks Store' } });
+    fireEvent.change(categorySelect, { target: { value: 'Food & Dining' } });
+    fireEvent.click(submitBtn);
+
+    expect(screen.getByText('Temporary Coffee Purchase')).toBeDefined();
+
+    const titleElem = screen.getByText('Temporary Coffee Purchase');
     const card = titleElem.closest('.group') || titleElem.closest('div');
     expect(card).not.toBeNull();
 
     const deleteBtn = within(card as HTMLElement).getByTitle(/Delete entry/i);
     fireEvent.click(deleteBtn);
 
-    // Should no longer appear
-    expect(screen.queryByText('Lunch with Colleagues')).toBeNull();
+    expect(screen.queryByText('Temporary Coffee Purchase')).toBeNull();
   });
 });

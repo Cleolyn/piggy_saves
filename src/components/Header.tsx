@@ -4,7 +4,6 @@ import {
   PiggyBank,
   Download,
   Upload,
-  RotateCcw,
   Trash2,
   ChevronDown,
   TrendingUp,
@@ -20,7 +19,6 @@ interface HeaderProps {
   savingsRate: number;
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
-  onResetData: () => void;
   onClearData: () => void;
   onImportData: (transactions: Transaction[], goals: SavingsGoal[]) => void;
   showToast: (msg: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
@@ -33,7 +31,6 @@ export const Header: React.FC<HeaderProps> = ({
   savingsRate,
   transactions,
   savingsGoals,
-  onResetData,
   onClearData,
   onImportData,
   showToast,
@@ -190,33 +187,19 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">Import</span>
             </button>
 
-            {/* Reset Demo Data */}
+            {/* Clear All Data */}
             <button
               type="button"
               onClick={() => {
-                if (window.confirm('Reset all transactions and goals to default demo sample data?')) {
-                  onResetData();
-                }
-              }}
-              className="flex items-center gap-1 text-xs font-medium text-muted hover:text-ink hover:bg-surface-strong rounded-pill px-2.5 py-1.5 transition-colors"
-              title="Reset to sample data"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Reset Demo</span>
-            </button>
-
-            {/* Clear Data */}
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to clear all transactions and reset data?')) {
+                if (window.confirm('Are you sure you want to clear all transactions and reset to a clean slate?')) {
                   onClearData();
                 }
               }}
-              className="flex items-center gap-1 text-xs font-medium text-semantic-down hover:bg-surface-strong rounded-pill p-1.5 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-semantic-down hover:bg-surface-strong border border-hairline rounded-pill px-2.5 py-1.5 transition-colors"
               title="Clear all records"
             >
               <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Clear Data</span>
             </button>
 
             {/* Clerk Authentication Controls */}

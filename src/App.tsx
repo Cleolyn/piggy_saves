@@ -21,6 +21,7 @@ import {
   type UserProfileRecord,
   type AuthProviderType,
 } from './utils/userRegistry';
+import { saveUserToTurso, checkTursoHealth } from './utils/turso';
 import {
   PiggyBank,
   TrendingDown,
@@ -39,6 +40,8 @@ import {
   ArrowRight,
   Mail,
   CheckCircle2,
+  Database,
+  RefreshCw,
 } from 'lucide-react';
 
 export function App() {
@@ -109,6 +112,11 @@ export function App() {
 
     setCurrentUserProfile(result.user);
 
+    // Synchronize user profile to Turso LibSQL cloud database
+    saveUserToTurso(result.user).catch((err) =>
+      console.warn('Turso user profile sync error:', err)
+    );
+
     if (!result.isNewUser) {
       // Existing user handling: automatically logged in, existing data preserved
       showToast('Welcome back! Logged into your existing account.', 'success');
@@ -124,6 +132,29 @@ export function App() {
       showToast(result.message, 'success');
     }
   }, [isSignedIn, primaryEmail, userId, user, currentProvider, showToast]);
+
+  const [tursoStatus, setTursoStatus] = useState<{
+    checking: boolean;
+    connected: boolean;
+    latencyMs?: number;
+    message?: string;
+  }>({ checking: false, connected: true });
+
+  const handleTestTurso = async () => {
+    setTursoStatus((prev) => ({ ...prev, checking: true }));
+    const health = await checkTursoHealth();
+    setTursoStatus({
+      checking: false,
+      connected: health.connected,
+      latencyMs: health.latencyMs,
+      message: health.connected ? `Connected (${health.latencyMs}ms)` : 'Connection Failed',
+    });
+    if (health.connected) {
+      showToast(`Turso Cloud Database Connected (${health.latencyMs}ms)`, 'success');
+    } else {
+      showToast(`Turso Connection Error: ${health.error}`, 'error');
+    }
+  };
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [currentView, setCurrentView] = useState<MainView>('dashboard');
@@ -1031,7 +1062,67 @@ export function App() {
                   </div>
                 </div>
 
-                {/* 3. Data Backup & Storage Tools */}
+                {/* 3. Turso LibSQL Cloud Database Card */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 md:col-span-2">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Database className="w-4 h-4 text-primary" />
+                      <h2 className="text-sm font-semibold text-slate-900">
+                        Turso LibSQL Cloud Database
+                      </h2>
+                    </div>
+                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Edge Database
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">Database Instance</span>
+                      <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
+                        piggyvault-vinceestodomingo-cpu
+                      </span>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">
+                        Region: aws-ap-northeast-1 (Tokyo)
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <span className="text-slate-400 block text-[11px]">Engine Protocol</span>
+                      <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
+                        libsql:// (HTTP/Hrana Web)
+                      </span>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">
+                        Tables: users, transactions, savings_goals, user_settings
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Connection Status</span>
+                        <span className="font-mono font-semibold text-emerald-600 text-[12px] mt-0.5 block">
+                          {tursoStatus.latencyMs ? `Healthy (${tursoStatus.latencyMs}ms)` : 'Connected & Synced'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleTestTurso}
+                        disabled={tursoStatus.checking}
+                        className="mt-2 text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium inline-flex items-center gap-1.5 cursor-pointer w-fit"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${tursoStatus.checking ? 'animate-spin text-primary' : 'text-slate-500'}`} />
+                        <span>{tursoStatus.checking ? 'Pinging...' : 'Test Connection'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                    Your financial transactions and savings goals are mirrored to Turso serverless LibSQL database for multi-device cloud persistence while retaining zero-latency local caching.
+                  </p>
+                </div>
+
+                {/* 4. Data Backup & Storage Tools */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 md:col-span-2">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-2">

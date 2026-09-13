@@ -20,6 +20,7 @@ export interface SavingsGoal {
   category?: string;
   targetDate?: string;
   color?: string;
+  notes?: string;
 }
 
 export interface FinancialMetrics {

@@ -18,6 +18,14 @@ import {
   clearAllData,
 } from '../utils/storage';
 import {
+  syncTransactionsToTurso,
+  fetchTransactionsFromTurso,
+  syncSavingsGoalsToTurso,
+  fetchSavingsGoalsFromTurso,
+  syncCurrencyToTurso,
+  clearTursoUserData,
+} from '../utils/turso';
+import {
   calculateAllMetrics,
   getExpenseCategoryBreakdown,
   getDailyTrends,
@@ -40,7 +48,7 @@ export function usePiggyVault(userEmail?: string | null) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const prevEmailRef = useRef(userEmail);
 
-  // When userEmail changes (e.g. login or switch account), reload user-scoped data
+  // When userEmail changes (e.g. login or switch account), reload user-scoped data & check Turso
   useEffect(() => {
     if (prevEmailRef.current !== userEmail) {
       prevEmailRef.current = userEmail;
@@ -48,22 +56,69 @@ export function usePiggyVault(userEmail?: string | null) {
       setSavingsGoals(loadSavingsGoals(userEmail));
       setCurrencyState(loadCurrency(userEmail));
     }
+
+    if (!userEmail) return;
+
+    // Background cloud hydration from Turso if local storage is empty
+    let isSubscribed = true;
+    (async () => {
+      try {
+        const localTx = loadTransactions(userEmail);
+        if (localTx.length === 0) {
+          const cloudTx = await fetchTransactionsFromTurso(userEmail);
+          if (isSubscribed && cloudTx.length > 0) {
+            setTransactions(cloudTx);
+            saveTransactions(cloudTx, userEmail);
+          }
+        }
+
+        const localGoals = loadSavingsGoals(userEmail);
+        if (localGoals.length === 0) {
+          const cloudGoals = await fetchSavingsGoalsFromTurso(userEmail);
+          if (isSubscribed && cloudGoals.length > 0) {
+            setSavingsGoals(cloudGoals);
+            saveSavingsGoals(cloudGoals, userEmail);
+          }
+        }
+      } catch (err) {
+        console.warn('Turso initial background fetch skipped:', err);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [userEmail]);
 
-  // Sync transactions to localStorage on change
+  // Sync transactions to localStorage & Turso on change
   useEffect(() => {
     saveTransactions(transactions, userEmail);
+    if (userEmail) {
+      syncTransactionsToTurso(userEmail, transactions).catch((err) =>
+        console.warn('Turso transaction sync error:', err)
+      );
+    }
   }, [transactions, userEmail]);
 
-  // Sync goals to localStorage on change
+  // Sync goals to localStorage & Turso on change
   useEffect(() => {
     saveSavingsGoals(savingsGoals, userEmail);
+    if (userEmail) {
+      syncSavingsGoalsToTurso(userEmail, savingsGoals).catch((err) =>
+        console.warn('Turso savings goals sync error:', err)
+      );
+    }
   }, [savingsGoals, userEmail]);
 
   // Currency changer
   const setCurrency = useCallback((code: CurrencyCode) => {
     setCurrencyState(code);
     saveCurrency(code, userEmail);
+    if (userEmail) {
+      syncCurrencyToTurso(userEmail, code).catch((err) =>
+        console.warn('Turso currency sync error:', err)
+      );
+    }
   }, [userEmail]);
 
   // Filter updater supporting partial updates
@@ -226,6 +281,11 @@ export function usePiggyVault(userEmail?: string | null) {
     const res = clearAllData(userEmail);
     setTransactions(res.transactions);
     setSavingsGoals(res.goals);
+    if (userEmail) {
+      clearTursoUserData(userEmail).catch((err) =>
+        console.warn('Turso clear data error:', err)
+      );
+    }
     showToast('All transaction records and goals cleared', 'warning');
   }, [userEmail, showToast]);
 

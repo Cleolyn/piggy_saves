@@ -258,21 +258,19 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
     expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
   });
 
-  it('renders features sidebar with individual features and supports navigation and mode switching', () => {
+  it('renders features sidebar with core modules and supports navigation and mode switching', () => {
     render(<App />);
 
     // Desktop features sidebar is mounted
     const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
     expect(sidebar).toBeDefined();
 
-    // Verify all individual features are present in the sidebar
-    expect(within(sidebar).getByText('Treasury Horizons')).toBeDefined();
-    expect(within(sidebar).getByText('Expense Logger')).toBeDefined();
-    expect(within(sidebar).getByText('Piggy Bank Ipon')).toBeDefined();
-    expect(within(sidebar).getByText('Activity Ledger')).toBeDefined();
-    expect(within(sidebar).getByText('Cash Flow Analytics')).toBeDefined();
-    expect(within(sidebar).getByText('Target Milestones')).toBeDefined();
-    expect(within(sidebar).getByText('Treasury Health')).toBeDefined();
+    // Verify all core modules are present in the sidebar
+    expect(within(sidebar).getByText('Dashboard / Overview')).toBeDefined();
+    expect(within(sidebar).getByText('Expense Tracking')).toBeDefined();
+    expect(within(sidebar).getByText('Ipon Savings')).toBeDefined();
+    expect(within(sidebar).getByText('Milestone Goals')).toBeDefined();
+    expect(within(sidebar).getByText('Settings & Auth')).toBeDefined();
 
     // Verify data backup/storage actions in sidebar
     expect(within(sidebar).getByText('Export CSV')).toBeDefined();
@@ -280,18 +278,18 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
     expect(within(sidebar).getByText('Import Backup')).toBeDefined();
     expect(within(sidebar).getByText('Clear All Data')).toBeDefined();
 
-    // Clicking 'Piggy Bank Ipon' in sidebar switches form to Mode B
-    const iponFeatureBtn = within(sidebar).getByText('Piggy Bank Ipon');
+    // Clicking 'Ipon Savings' in sidebar switches form to Mode B
+    const iponFeatureBtn = within(sidebar).getByText('Ipon Savings');
     fireEvent.click(iponFeatureBtn);
     expect(screen.getByRole('button', { name: /Deposit to Piggy Bank/i })).toBeDefined();
 
-    // Clicking 'Cash Flow Analytics' in sidebar switches view to analytics
-    const analyticsFeatureBtn = within(sidebar).getByText('Cash Flow Analytics');
-    fireEvent.click(analyticsFeatureBtn);
+    // Clicking 'Dashboard / Overview' in sidebar switches view to overview
+    const dashboardFeatureBtn = within(sidebar).getByText('Dashboard / Overview');
+    fireEvent.click(dashboardFeatureBtn);
     expect(screen.getByText('Category Spending Breakdown')).toBeDefined();
 
-    // Clicking 'Expense Logger' switches view back to activity in Mode A
-    const expenseFeatureBtn = within(sidebar).getByText('Expense Logger');
+    // Clicking 'Expense Tracking' switches view back to activity in Mode A
+    const expenseFeatureBtn = within(sidebar).getByText('Expense Tracking');
     fireEvent.click(expenseFeatureBtn);
     expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
   });
@@ -309,7 +307,7 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
     const mobileDrawer = screen.getByRole('dialog', { name: /Mobile Features Sidebar/i });
     expect(mobileDrawer).toBeDefined();
     expect(within(mobileDrawer).getByText('Features Navigation')).toBeDefined();
-    expect(within(mobileDrawer).getByText('Cash Flow Analytics')).toBeDefined();
+    expect(within(mobileDrawer).getByText('Expense Tracking')).toBeDefined();
 
     // Close button dismisses the mobile drawer
     const closeBtn = within(mobileDrawer).getByRole('button', { name: /Close sidebar/i });

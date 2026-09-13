@@ -1,5 +1,6 @@
 import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/react';
+import { GoogleIcon } from './GoogleIcon';
 import {
   PiggyBank,
   ArrowRight,
@@ -76,22 +77,31 @@ export const LandingPage: React.FC = () => {
           and monitor milestone goals—all secured with private, client-first data control.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full max-w-md mx-auto sm:max-w-none">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full max-w-lg mx-auto sm:max-w-none">
+          <SignInButton mode="modal">
+            <button
+              type="button"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 active:bg-slate-100 transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2.5 min-h-[48px]"
+            >
+              <GoogleIcon className="w-4 h-4" />
+              <span>Continue with Google</span>
+            </button>
+          </SignInButton>
           <SignUpButton mode="modal">
             <button
               type="button"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full text-sm font-semibold text-white bg-primary hover:bg-primary-active active:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 min-h-[48px]"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold text-white bg-primary hover:bg-primary-active active:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 min-h-[48px]"
             >
-              <span>Get Started — Fresh Slate</span>
+              <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </SignUpButton>
           <SignInButton mode="modal">
             <button
               type="button"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 transition-all cursor-pointer min-h-[48px] flex items-center justify-center"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 transition-all cursor-pointer min-h-[48px] flex items-center justify-center"
             >
-              Log In to Existing Vault
+              Log In
             </button>
           </SignInButton>
         </div>
@@ -218,9 +228,9 @@ export const LandingPage: React.FC = () => {
             <div className="w-8 h-8 rounded-full bg-white border border-slate-200 mx-auto flex items-center justify-center font-mono font-semibold text-xs text-slate-900">
               1
             </div>
-            <h4 className="text-sm font-semibold text-slate-900">Sign Up or Log In</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Sign In with Google or Email</h4>
             <p className="text-xs text-slate-500 leading-relaxed font-normal">
-              Create an account or sign in securely via Clerk in seconds using your email or social credentials.
+              Sign in with Google or email. If an account already exists for your email, you are automatically logged into your existing vault without duplicate accounts or reset balances.
             </p>
           </div>
 
@@ -230,7 +240,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <h4 className="text-sm font-semibold text-slate-900">Zero Starting State</h4>
             <p className="text-xs text-slate-500 leading-relaxed font-normal">
-              New accounts start with clean zero balances ($0.00 / ₱0.00). No pre-filled dummy data or sample distractions.
+              New accounts start with clean zero balances ($0.00 / ₱0.00). Existing accounts retain all previously recorded transactions and goals.
             </p>
           </div>
 
@@ -254,15 +264,24 @@ export const LandingPage: React.FC = () => {
             Ready to take control of your personal treasury?
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-normal">
-            Sign up today to access the transaction logger, savings milestone targets, and cash flow analytics.
+            Sign up or log in with Google to access your private transaction logger, savings milestones, and cash flow analytics.
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <SignInButton mode="modal">
+              <button
+                type="button"
+                className="px-5 py-3 rounded-full text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 transition-all cursor-pointer shadow-xs inline-flex items-center gap-2"
+              >
+                <GoogleIcon className="w-4 h-4" />
+                <span>Continue with Google</span>
+              </button>
+            </SignInButton>
             <SignUpButton mode="modal">
               <button
                 type="button"
                 className="px-6 py-3 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-active transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
               >
-                <span>Create Your Free Account</span>
+                <span>Create Account</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </SignUpButton>
@@ -271,7 +290,7 @@ export const LandingPage: React.FC = () => {
                 type="button"
                 className="px-6 py-3 rounded-full text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer"
               >
-                Sign In to Your Account
+                Sign In
               </button>
             </SignInButton>
           </div>

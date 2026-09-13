@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import type {
   Transaction,
@@ -32,28 +32,39 @@ const DEFAULT_FILTER: FilterState = {
   sortBy: 'date-desc',
 };
 
-export function usePiggyVault() {
-  const [transactions, setTransactions] = useState<Transaction[]>(() => loadTransactions());
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() => loadSavingsGoals());
-  const [currency, setCurrencyState] = useState<CurrencyCode>(() => loadCurrency());
+export function usePiggyVault(userEmail?: string | null) {
+  const [transactions, setTransactions] = useState<Transaction[]>(() => loadTransactions(userEmail));
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() => loadSavingsGoals(userEmail));
+  const [currency, setCurrencyState] = useState<CurrencyCode>(() => loadCurrency(userEmail));
   const [filter, setFilterState] = useState<FilterState>(DEFAULT_FILTER);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const prevEmailRef = useRef(userEmail);
+
+  // When userEmail changes (e.g. login or switch account), reload user-scoped data
+  useEffect(() => {
+    if (prevEmailRef.current !== userEmail) {
+      prevEmailRef.current = userEmail;
+      setTransactions(loadTransactions(userEmail));
+      setSavingsGoals(loadSavingsGoals(userEmail));
+      setCurrencyState(loadCurrency(userEmail));
+    }
+  }, [userEmail]);
 
   // Sync transactions to localStorage on change
   useEffect(() => {
-    saveTransactions(transactions);
-  }, [transactions]);
+    saveTransactions(transactions, userEmail);
+  }, [transactions, userEmail]);
 
   // Sync goals to localStorage on change
   useEffect(() => {
-    saveSavingsGoals(savingsGoals);
-  }, [savingsGoals]);
+    saveSavingsGoals(savingsGoals, userEmail);
+  }, [savingsGoals, userEmail]);
 
   // Currency changer
   const setCurrency = useCallback((code: CurrencyCode) => {
     setCurrencyState(code);
-    saveCurrency(code);
-  }, []);
+    saveCurrency(code, userEmail);
+  }, [userEmail]);
 
   // Filter updater supporting partial updates
   const setFilter = useCallback((partial: Partial<FilterState>) => {
@@ -205,18 +216,18 @@ export function usePiggyVault() {
 
   // Reset & Clear data
   const handleResetData = useCallback(() => {
-    const res = resetToDefaults();
+    const res = resetToDefaults(userEmail);
     setTransactions(res.transactions);
     setSavingsGoals(res.goals);
     showToast('Dashboard reset to clean slate', 'info');
-  }, [showToast]);
+  }, [userEmail, showToast]);
 
   const handleClearData = useCallback(() => {
-    const res = clearAllData();
+    const res = clearAllData(userEmail);
     setTransactions(res.transactions);
     setSavingsGoals(res.goals);
     showToast('All transaction records and goals cleared', 'warning');
-  }, [showToast]);
+  }, [userEmail, showToast]);
 
   // Dynamic calculations
   const metrics = useMemo(() => {

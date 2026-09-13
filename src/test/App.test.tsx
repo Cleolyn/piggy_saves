@@ -8,10 +8,20 @@ vi.mock('canvas-confetti', () => ({
 }));
 
 // Mutable auth state for tests
-let mockAuth = {
+interface MockAuthState {
+  isLoaded: boolean;
+  isSignedIn: boolean;
+  userId: string | null;
+  email?: string | null;
+  externalAccounts?: Array<{ provider: string; emailAddress?: string }>;
+}
+
+let mockAuth: MockAuthState = {
   isLoaded: true,
   isSignedIn: false,
-  userId: null as string | null,
+  userId: null,
+  email: 'testuser@piggyvault.com',
+  externalAccounts: [],
 };
 
 // Mock @clerk/react
@@ -27,7 +37,14 @@ vi.mock('@clerk/react', () => ({
   UserButton: () => <button data-testid="user-button">User</button>,
   useUser: () => ({
     isSignedIn: mockAuth.isSignedIn,
-    user: mockAuth.isSignedIn ? { id: mockAuth.userId } : null,
+    user: mockAuth.isSignedIn
+      ? {
+          id: mockAuth.userId,
+          primaryEmailAddress: { emailAddress: mockAuth.email || 'testuser@piggyvault.com' },
+          emailAddresses: [{ emailAddress: mockAuth.email || 'testuser@piggyvault.com' }],
+          externalAccounts: mockAuth.externalAccounts || [],
+        }
+      : null,
   }),
   useAuth: () => mockAuth,
 }));
@@ -35,7 +52,13 @@ vi.mock('@clerk/react', () => ({
 describe('PiggyVault Authentication Wall & Landing Page', () => {
   beforeEach(() => {
     localStorage.clear();
-    mockAuth = { isLoaded: true, isSignedIn: false, userId: null };
+    mockAuth = {
+      isLoaded: true,
+      isSignedIn: false,
+      userId: null,
+      email: 'testuser@piggyvault.com',
+      externalAccounts: [],
+    };
   });
 
   it('renders the clean unauthenticated landing page with overview and auth triggers', () => {
@@ -373,4 +396,113 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
     expect(screen.getByText('Data Backup & Recovery')).toBeDefined();
   });
 });
+
+describe('Google Authentication & Existing User Guard Integration', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    window.scrollTo = vi.fn();
+  });
+
+  it('renders prominent Continue with Google triggers on the landing page', () => {
+    mockAuth = {
+      isLoaded: true,
+      isSignedIn: false,
+      userId: null,
+      email: null,
+      externalAccounts: [],
+    };
+
+    render(<App />);
+
+    const googleButtons = screen.getAllByRole('button', { name: /Continue with Google/i });
+    expect(googleButtons.length).toBeGreaterThan(0);
+  });
+
+  it('displays "Welcome back! Logged into your existing account." and preserves populated data when existing user signs in with Google', async () => {
+    const existingEmail = 'existing.saver@piggyvault.com';
+
+    // 1. Pre-seed the existing user in userRegistry and their partitioned data
+    localStorage.setItem(
+      'piggyvault_users_registry',
+      JSON.stringify({
+        [existingEmail]: {
+          userId: 'user_orig_777',
+          email: existingEmail,
+          authProviders: ['google'],
+          createdAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(),
+          isOnboarded: true,
+          dataStorageKey: `piggyvault_user_${existingEmail.replace(/[^a-z0-9_]/g, '_')}`,
+          linkedAccountsCount: 1,
+        },
+      })
+    );
+
+    // Pre-seed an existing transaction for this user
+    localStorage.setItem(
+      `piggyvault_user_${existingEmail.replace(/[^a-z0-9_]/g, '_')}_transactions`,
+      JSON.stringify([
+        {
+          id: 'tx-existing-1',
+          type: 'SAVINGS',
+          title: 'Special Vault Deposit',
+          amount: 8888,
+          category: 'Piggy Bank Deposit',
+          destination: 'Main Treasury',
+          timestamp: new Date().toISOString(),
+        },
+      ])
+    );
+
+    // 2. User signs in via Google OAuth
+    mockAuth = {
+      isLoaded: true,
+      isSignedIn: true,
+      userId: 'user_orig_777',
+      email: existingEmail,
+      externalAccounts: [{ provider: 'google', emailAddress: existingEmail }],
+    };
+
+    render(<App />);
+
+    // Existing user handling: Must show exact toast
+    expect(
+      await screen.findByText('Welcome back! Logged into your existing account.')
+    ).toBeDefined();
+
+    // Data protection: Pre-existing transactions must NOT be wiped or reset
+    expect(screen.getByText('Special Vault Deposit')).toBeDefined();
+    expect(screen.getAllByText('₱8,888.00').length).toBeGreaterThan(0);
+  });
+
+  it('displays user email as Primary Unique Key, Google OAuth Linked, and Duplicate Shield in Settings', () => {
+    const userEmail = 'verified.user@piggyvault.com';
+
+    mockAuth = {
+      isLoaded: true,
+      isSignedIn: true,
+      userId: 'clerk_user_999',
+      email: userEmail,
+      externalAccounts: [{ provider: 'google', emailAddress: userEmail }],
+    };
+
+    render(<App />);
+
+    // Navigate to Settings
+    const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
+    fireEvent.click(within(sidebar).getByText('Settings & Auth'));
+
+    // Check email as primary unique key
+    expect(screen.getByText(userEmail)).toBeDefined();
+    expect(screen.getByText('Primary Unique Key')).toBeDefined();
+
+    // Check Google OAuth Linked status badge
+    expect(screen.getByText('Google OAuth')).toBeDefined();
+    expect(screen.getAllByText('Linked').length).toBeGreaterThan(0);
+
+    // Check Duplicate Account Shield Active indicator
+    expect(screen.getByText('Duplicate Account Shield Active')).toBeDefined();
+  });
+});
+
 

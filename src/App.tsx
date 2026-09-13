@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useAuth, UserButton } from '@clerk/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth, useUser, UserButton } from '@clerk/react';
 import { LandingPage } from './components/LandingPage';
 import { Header } from './components/Header';
 import { Sidebar, type FeatureKey } from './components/Sidebar';
@@ -10,10 +10,17 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { SavingsGoalsCard } from './components/SavingsGoalsCard';
 import { EditTransactionModal } from './components/EditTransactionModal';
 import { ToastContainer } from './components/Toast';
+import { GoogleIcon } from './components/GoogleIcon';
 import { usePiggyVault } from './hooks/usePiggyVault';
 import type { Transaction, TransactionType, MainView, CurrencyCode } from './types';
 import { formatCurrency, CURRENCIES } from './utils/formatters';
 import { saveTransactions, saveSavingsGoals, exportToCSV, exportToJSON } from './utils/storage';
+import {
+  registerOrLoginUser,
+  findUserByEmail,
+  type UserProfileRecord,
+  type AuthProviderType,
+} from './utils/userRegistry';
 import {
   PiggyBank,
   TrendingDown,
@@ -30,10 +37,27 @@ import {
   Trash2,
   Lock,
   ArrowRight,
+  Mail,
+  CheckCircle2,
 } from 'lucide-react';
 
 export function App() {
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
+
+  // Extract user email as primary unique key
+  const primaryEmail =
+    user?.primaryEmailAddress?.emailAddress ||
+    user?.emailAddresses?.[0]?.emailAddress ||
+    (userId ? `${userId}@piggyvault.local` : '');
+
+  // Detect whether session authenticated via Google OAuth
+  const isGoogleAccount = Boolean(
+    user?.externalAccounts?.some(
+      (acc) => acc.provider === 'google' || (acc.provider && acc.provider.includes('google'))
+    )
+  );
+  const currentProvider: AuthProviderType = isGoogleAccount ? 'google' : 'email_password';
 
   const {
     transactions,
@@ -56,7 +80,50 @@ export function App() {
     updateSavingsGoal,
     deleteSavingsGoal,
     clearAllData,
-  } = usePiggyVault();
+  } = usePiggyVault(primaryEmail);
+
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfileRecord | null>(
+    () => (primaryEmail ? findUserByEmail(primaryEmail) : null)
+  );
+  const sessionInitializedRef = useRef<string | null>(null);
+
+  // Authentication Guard & Provider Account Linker
+  useEffect(() => {
+    if (!isSignedIn || !primaryEmail) {
+      sessionInitializedRef.current = null;
+      return;
+    }
+
+    if (sessionInitializedRef.current === primaryEmail) {
+      return;
+    }
+
+    sessionInitializedRef.current = primaryEmail;
+
+    // Run account guard: prevents duplicate profiles and ensures seamless account linking
+    const result = registerOrLoginUser({
+      userId: userId || user?.id || `user_${Date.now()}`,
+      email: primaryEmail,
+      provider: currentProvider,
+    });
+
+    setCurrentUserProfile(result.user);
+
+    if (!result.isNewUser) {
+      // Existing user handling: automatically logged in, existing data preserved
+      showToast('Welcome back! Logged into your existing account.', 'success');
+      if (result.wasLinked) {
+        setTimeout(() => {
+          showToast(
+            `Linked ${currentProvider === 'google' ? 'Google' : 'email'} credentials to your profile.`,
+            'info'
+          );
+        }, 1200);
+      }
+    } else {
+      showToast(result.message, 'success');
+    }
+  }, [isSignedIn, primaryEmail, userId, user, currentProvider, showToast]);
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [currentView, setCurrentView] = useState<MainView>('dashboard');
@@ -66,8 +133,8 @@ export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportData = (newTransactions: Transaction[], newGoals: typeof savingsGoals) => {
-    saveTransactions(newTransactions);
-    saveSavingsGoals(newGoals);
+    saveTransactions(newTransactions, primaryEmail);
+    saveSavingsGoals(newGoals, primaryEmail);
     window.location.reload();
   };
 
@@ -848,24 +915,82 @@ export function App() {
                       <Lock className="w-4 h-4 text-primary" />
                       <h2 className="text-sm font-semibold text-slate-900">Session & Identity</h2>
                     </div>
-                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Active
+                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Authenticated
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  {/* User Profile Overview */}
+                  <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
                     <UserButton />
-                    <div className="text-xs min-w-0">
-                      <div className="font-semibold text-slate-900">Clerk Authenticated User</div>
+                    <div className="text-xs min-w-0 flex-1">
+                      <div className="font-semibold text-slate-900 truncate">
+                        {primaryEmail || 'Authenticated User'}
+                      </div>
                       <div className="font-mono text-[11px] text-slate-400 truncate">
-                        ID: {userId || 'Local Session'}
+                        UID: {userId || 'Local Session'}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                      Primary Unique Key
+                    </span>
+                  </div>
+
+                  {/* Linked Auth Providers & Shield */}
+                  <div className="space-y-2.5 pt-1">
+                    <span className="text-xs font-semibold text-slate-700 block">
+                      Connected Authentication Methods
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {/* Google Provider Badge */}
+                      <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white">
+                        <div className="flex items-center gap-2">
+                          <GoogleIcon className="w-4 h-4" />
+                          <span className="font-medium text-slate-800">Google OAuth</span>
+                        </div>
+                        {currentUserProfile?.authProviders.includes('google') || isGoogleAccount ? (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Linked
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                            Available
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Email/Password Provider Badge */}
+                      <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-slate-600" />
+                          <span className="font-medium text-slate-800">Email & Password</span>
+                        </div>
+                        {currentUserProfile?.authProviders.includes('email_password') || !isGoogleAccount ? (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Linked
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                            Available
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                    PiggyVault uses Clerk for identity authentication while keeping all financial ledger records exclusively in your local browser storage.
-                  </p>
+                  {/* Security Guard Guarantee */}
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1 text-[11px] text-slate-600">
+                    <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Duplicate Account Shield Active</span>
+                    </div>
+                    <p className="text-slate-500 leading-relaxed font-normal">
+                      Google logins with existing emails automatically link and log in to your existing profile. Financial transactions and savings goals are partitioned privately per email account.
+                    </p>
+                  </div>
                 </div>
 
                 {/* 2. Currency Selector Card */}

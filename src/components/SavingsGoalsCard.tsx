@@ -88,10 +88,10 @@ export const SavingsGoalsCard: React.FC<SavingsGoalsCardProps> = ({
         <div>
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            Target Milestones
+            Savings Goals
           </h2>
           <p className="text-xs text-slate-500 mt-0.5 font-normal">
-            Automated progress tracking toward designated funds
+            Track progress toward your personal savings targets
           </p>
         </div>
 

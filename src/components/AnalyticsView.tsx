@@ -54,10 +54,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 Category Spending Breakdown
               </h3>
               <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                Distribution of operational expenditures
+                See where your money goes across categories
               </p>
             </div>
-            <span className="text-xs font-mono font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 shrink-0">
+            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 shrink-0">
               {categories.length} categories
             </span>
           </div>
@@ -105,7 +105,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         {/* Footnote */}
         <div className="pt-3.5 sm:pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
-          <span>All-Time Logged Expenses:</span>
+          <span>Total Logged Expenses:</span>
           <span className="font-mono font-medium text-rose-600">
             {formatCurrency(totalExpenses, currency)}
           </span>
@@ -122,7 +122,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 7-Day Cash Flow Dynamics
               </h3>
               <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                Daily comparative dynamics of savings vs expenses
+                Compare what you saved versus what you spent each day
               </p>
             </div>
 
@@ -199,7 +199,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 </div>
               ) : (
                 <span className="text-slate-400 text-[11px] mx-auto italic">
-                  Tap or hover over bars to inspect daily cash flow figures
+                  Tap or hover over bars to inspect daily spending & savings
                 </span>
               )}
             </div>
@@ -208,7 +208,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         {/* Footnote */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-normal">
-          <span>All-Time Accumulated Savings:</span>
+          <span>Total Accumulated Savings:</span>
           <span className="font-mono font-medium text-emerald-700">
             {formatCurrency(totalSavings, currency)}
           </span>

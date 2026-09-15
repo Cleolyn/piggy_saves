@@ -28,8 +28,8 @@ export const LandingPage: React.FC = () => {
                 <span className="text-base sm:text-lg font-semibold tracking-tight text-slate-900 flex items-center gap-1">
                   Piggy<span className="text-primary font-normal">Vault</span>
                 </span>
-                <span className="hidden xs:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  Ipon OS
+                <span className="hidden xs:inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Savings & Budget
                 </span>
               </div>
             </div>
@@ -60,11 +60,9 @@ export const LandingPage: React.FC = () => {
 
       {/* Hero Section */}
       <section className="py-12 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[11px] sm:text-xs font-mono text-slate-600 border border-slate-200">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[11px] sm:text-xs text-slate-600 border border-slate-200">
           <span className="w-2 h-2 rounded-full bg-primary" />
-          <span>INSTITUTIONAL IPON OS</span>
-          <span className="text-slate-300">|</span>
-          <span>PERSONAL TREASURY</span>
+          <span>SMART SAVINGS & EXPENSE TRACKER</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-slate-900 leading-[1.18] sm:leading-[1.12]">
@@ -149,8 +147,8 @@ export const LandingPage: React.FC = () => {
                   Record daily expenditures across custom categories with precise timestamps and merchant destinations. Know exactly where your money goes.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400">
-                Mode A · Living Expenses
+              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+                Everyday Expenses
               </div>
             </div>
 
@@ -166,8 +164,8 @@ export const LandingPage: React.FC = () => {
                   Rooted in the disciplined habit of 'ipon'—isolate designated savings deposits from everyday spendable cash flow to preserve capital.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400">
-                Mode B · Capital Accumulation
+              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+                Piggy Bank Savings
               </div>
             </div>
 
@@ -183,8 +181,8 @@ export const LandingPage: React.FC = () => {
                   Set monetary targets and completion dates for emergency funds, travel adventures, or big purchases. Watch your progress auto-calculate.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400">
-                Dynamic Goal Milestones
+              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+                Savings Goals & Milestones
               </div>
             </div>
 
@@ -200,8 +198,8 @@ export const LandingPage: React.FC = () => {
                   Your numbers are strictly yours. All data lives in your local browser storage with zero cloud telemetry. Export to JSON or CSV anytime.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400">
-                Zero Cloud Tracking
+              <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+                Private & Local First
               </div>
             </div>
           </div>
@@ -211,9 +209,9 @@ export const LandingPage: React.FC = () => {
       {/* Account Protection Walkthrough */}
       <section className="py-16 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-xl mx-auto mb-14 space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs font-mono text-slate-600 border border-slate-200">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs text-slate-600 border border-slate-200">
             <Lock className="w-3.5 h-3.5 text-primary" />
-            <span>AUTHENTICATION WALL</span>
+            <span>SECURE ACCESS</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-normal tracking-tight text-slate-900">
             Protected access with a fresh start
@@ -301,10 +299,10 @@ export const LandingPage: React.FC = () => {
       <footer className="border-t border-slate-100 bg-white py-10 text-xs text-slate-500 mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 font-mono text-[11px]">
+            <div className="flex items-center gap-2 text-[11px]">
               <span className="font-semibold text-slate-900">PiggyVault</span>
               <span>·</span>
-              <span>Institutional Ipon & Budgeting Operating System</span>
+              <span>Friendly Personal Budget & Savings Tracker</span>
             </div>
             <div className="text-[11px] text-slate-400 font-normal">
               Supported Currencies: PHP (₱), USD ($), EUR (€), GBP (£), JPY (¥), SGD (S$)

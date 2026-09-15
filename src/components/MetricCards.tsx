@@ -57,7 +57,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
           <div className="text-lg sm:text-2xl lg:text-3xl font-medium tracking-tight font-mono text-slate-900 truncate">
             {formatCurrency(metrics.todayExpenses, currency)}
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Past 24h Spending</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Spent Today</p>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
       <div className="bg-white rounded-2xl p-3.5 sm:p-5 lg:p-6 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col justify-between col-span-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-            <CalendarRange className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Past 7D
+            <CalendarRange className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Last 7 Days
           </span>
           <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
             {formatCurrency(weeklyDailyAvg, currency)}/d
@@ -76,7 +76,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
           <div className="text-lg sm:text-2xl lg:text-3xl font-medium tracking-tight font-mono text-slate-900 truncate">
             {formatCurrency(metrics.weeklyExpenses, currency)}
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Weekly Spending</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Last 7 Days</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
       <div className="bg-white rounded-2xl p-3.5 sm:p-5 lg:p-6 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col justify-between col-span-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-            <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Past 30D
+            <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Last 30 Days
           </span>
           <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
             {formatCurrency(monthlyDailyAvg, currency)}/d
@@ -95,7 +95,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
           <div className="text-lg sm:text-2xl lg:text-3xl font-medium tracking-tight font-mono text-slate-900 truncate">
             {formatCurrency(metrics.monthlyExpenses, currency)}
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Monthly Spending</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 font-normal">Last 30 Days</p>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
       <div className="bg-white rounded-2xl p-3.5 sm:p-5 lg:p-6 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col justify-between col-span-1 sm:col-span-2 lg:col-span-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-            <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Cash Flow
+            <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" /> Net Balance
           </span>
           {isSurplus ? (
             <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
@@ -122,11 +122,11 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ metrics, currency }) =
             {formatCurrency(metrics.netLiquidity, currency)}
           </div>
           <p
-            className={`text-[11px] sm:text-xs mt-0.5 sm:mt-1 font-mono font-medium truncate ${
+            className={`text-[11px] sm:text-xs mt-0.5 sm:mt-1 font-medium truncate ${
               isSurplus ? 'text-emerald-700' : 'text-rose-600'
             }`}
           >
-            {isSurplus ? '● Net Surplus' : '● Deficit Outflow'}
+            {isSurplus ? '● Net Surplus' : '● Over Budget'}
           </p>
         </div>
       </div>

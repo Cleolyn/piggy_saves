@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'dashboard',
       label: 'Dashboard / Overview',
-      sublabel: 'Main summary & liquidity',
+      sublabel: 'Summary & balance',
       badge: 'Overview',
       icon: LayoutDashboard,
       colorClass: 'text-indigo-600',
@@ -91,23 +91,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'expense',
       label: 'Expense Tracking',
-      sublabel: 'Multi-horizon disbursements',
-      badge: 'Mode A',
+      sublabel: 'Track everyday spending',
+      badge: 'Spending',
       icon: TrendingDown,
       colorClass: 'text-rose-500',
     },
     {
       id: 'savings',
       label: 'Ipon Savings',
-      sublabel: 'Piggy bank deposits & vaults',
-      badge: 'Mode B',
+      sublabel: 'Grow your piggy bank',
+      badge: 'Savings',
       icon: PiggyBank,
       colorClass: 'text-primary',
     },
     {
       id: 'goals',
       label: 'Milestone Goals',
-      sublabel: 'Target savings capital',
+      sublabel: 'Targets & milestone funds',
       badge: goalsCount > 0 ? `${goalsCount}` : undefined,
       icon: Target,
       colorClass: 'text-amber-500',
@@ -115,17 +115,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'settings',
       label: 'Settings & Auth',
-      sublabel: 'Preferences, currency & tools',
-      badge: 'Config',
+      sublabel: 'Account & preferences',
       icon: Settings,
       colorClass: 'text-slate-600',
     },
   ];
 
-  // Render expanded content (used for desktop expanded & mobile drawer)
-  const renderExpandedContent = (isMobile = false) => (
+  const renderExpandedContent = (isMobile: boolean) => (
     <div className="flex flex-col h-full bg-white text-slate-800">
-      {/* Sidebar Header / Brand */}
+      {/* Brand & Drawer Close / Collapse trigger */}
       <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary shadow-xs">
@@ -135,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="text-sm font-semibold tracking-tight text-slate-900 flex items-center gap-1">
               Piggy<span className="text-primary font-normal">Vault</span>
             </div>
-            <div className="text-[10px] font-mono text-slate-400">Features Navigation</div>
+            <div className="text-[10px] text-slate-400">Features Navigation</div>
           </div>
         </div>
 
@@ -179,16 +177,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-lg font-mono font-semibold text-slate-900 mt-1">
             {formatCurrency(totalSavings, currency)}
           </div>
-          <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+          <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
             <Sparkles className="w-2.5 h-2.5 text-amber-500" />
-            <span>Private client-side vault</span>
+            <span>Saved privately on your device</span>
           </div>
         </div>
 
         {/* Section 1: Main Pages / Dedicated Feature Views */}
         <div className="space-y-1">
-          <div className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-mono">
-            Core Modules
+          <div className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Menu
           </div>
           {mainViews.map((item) => {
             const Icon = item.icon;
@@ -227,7 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 {item.badge && (
                   <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0 ml-1.5 ${
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ml-1.5 ${
                       isSelected
                         ? 'bg-primary/10 text-primary font-semibold'
                         : 'bg-slate-100 text-slate-500 border border-slate-200'
@@ -243,8 +241,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Section 2: Data & Storage Actions */}
         <div className="space-y-1 pt-2 border-t border-slate-100">
-          <div className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-mono">
-            Storage & Tools
+          <div className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Data & Backup
           </div>
 
           <button
@@ -311,11 +309,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Footer: Base Currency Switcher & Version */}
       <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-slate-400 font-mono">FX:</span>
+          <span className="text-[11px] text-slate-500 font-medium">Currency:</span>
           <select
             value={currency}
             onChange={(e) => onCurrencyChange(e.target.value as CurrencyCode)}
-            className="text-xs font-mono font-medium text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+            className="text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
             aria-label="Sidebar Currency Selector"
           >
             {Object.values(CURRENCIES).map((c) => (
@@ -326,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </select>
         </div>
 
-        <span className="text-[10px] font-mono text-slate-400">PiggyVault v1.0</span>
+        <span className="text-[10px] text-slate-400">PiggyVault v1.0</span>
       </div>
     </div>
   );

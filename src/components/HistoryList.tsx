@@ -59,13 +59,13 @@ export const HistoryList: React.FC<HistoryListProps> = ({
           <div>
             <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-slate-500" />
-              Historical Audit Trail
+              Transaction History
               <span className="text-[11px] px-2.5 py-0.5 rounded-full font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
                 {transactions.length}
               </span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5 font-normal">
-              Searchable ledger with exact auto-timestamps
+              Search, filter, and review all your past expenses and savings
             </p>
           </div>
 
@@ -180,7 +180,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
           <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs animate-in fade-in duration-100">
             <div>
               <label className="block text-[11px] font-semibold uppercase text-slate-500 mb-1">
-                Time Horizon
+                Date Range
               </label>
               <select
                 value={filter.timeRange}

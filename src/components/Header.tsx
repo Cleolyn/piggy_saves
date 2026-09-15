@@ -107,13 +107,13 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-base sm:text-lg font-semibold tracking-tight text-slate-900 flex items-center gap-1">
                 Piggy<span className="text-primary font-normal">Vault</span>
               </span>
-              <span className="hidden xs:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                Ipon OS
+              <span className="hidden xs:inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100">
+                Ipon
               </span>
               {activeViewTitle && (
                 <>
                   <span className="hidden md:inline-block text-slate-300">/</span>
-                  <span className="hidden md:inline-block text-xs font-semibold text-slate-700 font-mono">
+                  <span className="hidden md:inline-block text-xs font-semibold text-slate-700">
                     {activeViewTitle}
                   </span>
                 </>
@@ -125,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Live Ipon Summary Pill */}
             <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-50 border border-slate-200 text-[11px] sm:text-xs">
-              <span className="text-slate-500 hidden sm:inline">Ipon Stash:</span>
+              <span className="text-slate-500 hidden sm:inline">Savings:</span>
               <span className="font-mono font-semibold text-slate-900">
                 {formatCurrency(totalSavings, currency)}
               </span>
@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
                 id="currency-select"
                 value={currency}
                 onChange={(e) => onCurrencyChange(e.target.value as CurrencyCode)}
-                className="text-xs font-mono font-medium bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-full px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer min-h-[34px]"
+                className="text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-full px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer min-h-[34px]"
                 title="Change display currency"
               >
                 {Object.values(CURRENCIES).map((c) => (
@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
                   />
                   <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
                     <div className="px-3.5 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                      Data Backup
+                      Backup & Export
                     </div>
                     <button
                       type="button"
@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="my-1 border-t border-slate-100" />
 
                     <div className="px-3.5 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                      Storage Control
+                      Manage Data
                     </div>
                     <button
                       type="button"

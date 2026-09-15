@@ -141,6 +141,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <button
             type="button"
             onClick={() => handleTabChange('EXPENSE')}
+            aria-label="Log Expense"
             className={`flex-1 py-2.5 sm:py-2 px-2.5 sm:px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer min-h-[40px] ${
               activeTab === 'EXPENSE'
                 ? 'bg-white text-slate-900 shadow-xs'
@@ -148,12 +149,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             }`}
           >
             <TrendingDown className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-            <span className="truncate">Mode A: Log Expense</span>
+            <span className="truncate">Log Expense</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleTabChange('SAVINGS')}
+            aria-label="Piggy Bank / Ipon"
             className={`flex-1 py-2.5 sm:py-2 px-2.5 sm:px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer min-h-[40px] ${
               activeTab === 'SAVINGS'
                 ? 'bg-white text-slate-900 shadow-xs'
@@ -161,7 +163,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             }`}
           >
             <PiggyBank className="w-3.5 h-3.5 text-primary shrink-0" />
-            <span className="truncate">Mode B: Piggy Bank / Ipon</span>
+            <span className="truncate">Piggy Bank / Ipon</span>
           </button>
         </div>
       </div>
@@ -174,14 +176,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <>
               <TrendingDown className="w-4 h-4 text-rose-500 shrink-0" />
               <span>
-                <strong className="text-slate-800 font-medium">Expense Logging:</strong> Records operational outlays and updates daily/weekly spending.
+                <strong className="text-slate-800 font-medium">Log Expense:</strong> Keep track of your everyday spending, bills, and purchases.
               </span>
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
               <span>
-                <strong className="text-slate-800 font-medium">Ipon Deposit:</strong> Channels savings directly to your piggy bank or target fund.
+                <strong className="text-slate-800 font-medium">Add to Ipon:</strong> Put money into your piggy bank or assign it to a savings goal.
               </span>
             </>
           )}
@@ -386,7 +388,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              Timestamp <span className="text-primary">*</span>
+              Date & Time <span className="text-primary">*</span>
             </label>
             <input
               type="datetime-local"

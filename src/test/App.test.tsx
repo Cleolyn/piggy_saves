@@ -374,15 +374,15 @@ describe('PiggyVault Protected Dashboard (Authenticated)', () => {
 
     // 2. Navigate to Expense Tracking
     fireEvent.click(within(sidebar).getByText('Expense Tracking'));
-    expect(screen.getAllByText('Mode A').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Expenses').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('button', { name: /Log Expense Entry/i })).toBeDefined();
-    expect(screen.getByText('Spending Horizons')).toBeDefined();
+    expect(screen.getByText('Spending Summary')).toBeDefined();
 
     // 3. Navigate to Ipon Savings
     fireEvent.click(within(sidebar).getByText('Ipon Savings'));
-    expect(screen.getAllByText('Mode B').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Savings').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('button', { name: /Deposit to Piggy Bank/i })).toBeDefined();
-    expect(screen.getByText('Accumulated Capital Stash')).toBeDefined();
+    expect(screen.getByText('Savings Stash')).toBeDefined();
 
     // 4. Navigate to Milestone Goals
     fireEvent.click(within(sidebar).getByText('Milestone Goals'));
@@ -475,7 +475,7 @@ describe('Google Authentication & Existing User Guard Integration', () => {
     expect(screen.getAllByText('₱8,888.00').length).toBeGreaterThan(0);
   });
 
-  it('displays user email as Primary Unique Key, Google OAuth Linked, and Duplicate Shield in Settings', () => {
+  it('displays user email as Primary Account, Google OAuth Linked, and Duplicate Shield in Settings', () => {
     const userEmail = 'verified.user@piggyvault.com';
 
     mockAuth = {
@@ -492,9 +492,9 @@ describe('Google Authentication & Existing User Guard Integration', () => {
     const sidebar = screen.getByRole('complementary', { name: /Features Sidebar/i });
     fireEvent.click(within(sidebar).getByText('Settings & Auth'));
 
-    // Check email as primary unique key
+    // Check email as primary account
     expect(screen.getByText(userEmail)).toBeDefined();
-    expect(screen.getByText('Primary Unique Key')).toBeDefined();
+    expect(screen.getByText('Primary Account')).toBeDefined();
 
     // Check Google OAuth Linked status badge
     expect(screen.getByText('Google OAuth')).toBeDefined();

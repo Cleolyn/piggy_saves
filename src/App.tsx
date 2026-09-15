@@ -42,6 +42,7 @@ import {
   CheckCircle2,
   Database,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 
 export function App() {
@@ -139,6 +140,7 @@ export function App() {
     latencyMs?: number;
     message?: string;
   }>({ checking: false, connected: true });
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
   const handleTestTurso = async () => {
     setTursoStatus((prev) => ({ ...prev, checking: true }));
@@ -150,9 +152,9 @@ export function App() {
       message: health.connected ? `Connected (${health.latencyMs}ms)` : 'Connection Failed',
     });
     if (health.connected) {
-      showToast(`Turso Cloud Database Connected (${health.latencyMs}ms)`, 'success');
+      showToast('Cloud backup is connected and up to date', 'success');
     } else {
-      showToast(`Turso Connection Error: ${health.error}`, 'error');
+      showToast(`Cloud connection error: ${health.error}`, 'error');
     }
   };
 
@@ -296,7 +298,7 @@ export function App() {
           <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary animate-pulse">
             <PiggyBank className="w-5 h-5" />
           </div>
-          <p className="text-xs font-mono text-slate-500">Authenticating PiggyVault...</p>
+          <p className="text-xs text-slate-500">Loading your PiggyVault...</p>
         </div>
       </div>
     );
@@ -389,12 +391,12 @@ export function App() {
                     <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
                       Treasury Horizons
                     </h1>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-primary border border-rose-100">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-primary border border-rose-100 font-medium">
                       Overview
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                    Multi-horizon spending overview & net liquidity indicator
+                    Summary of your spending, savings, and overall cash flow
                   </p>
                 </div>
 
@@ -621,7 +623,7 @@ export function App() {
                     </div>
 
                     <p className="text-xs text-slate-500 leading-relaxed font-normal pt-1">
-                      100% private client-side vault. Data resides securely in local storage.
+                      Your data is saved safely on your device with automatic cloud backup.
                     </p>
                   </div>
                 </div>
@@ -641,12 +643,12 @@ export function App() {
                     <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
                       Expense Tracking
                     </h1>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 font-semibold">
-                      Mode A
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 font-medium">
+                      Expenses
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                    Multi-horizon outlays, operating disbursements & searchable ledger
+                    Track your everyday expenses, view spending by date, and search transactions
                   </p>
                 </div>
 
@@ -679,7 +681,7 @@ export function App() {
                   <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
                       <TrendingDown className="w-4 h-4 text-rose-500" />
-                      Spending Horizons
+                      Spending Summary
                     </h3>
                     <div className="space-y-2.5 text-xs">
                       <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
@@ -689,19 +691,19 @@ export function App() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
-                        <span className="text-slate-500">7-Day Outlays</span>
+                        <span className="text-slate-500">Last 7 Days</span>
                         <span className="font-mono font-semibold text-slate-900">
                           {formatCurrency(metrics.weeklyExpenses, currency)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
-                        <span className="text-slate-500">30-Day Outlays</span>
+                        <span className="text-slate-500">Last 30 Days</span>
                         <span className="font-mono font-semibold text-slate-900">
                           {formatCurrency(metrics.monthlyExpenses, currency)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-2.5 rounded-xl bg-rose-50/50 border border-rose-100">
-                        <span className="text-rose-700 font-medium">All-Time Expenses</span>
+                        <span className="text-rose-700 font-medium">Total Expenses</span>
                         <span className="font-mono font-semibold text-rose-700">
                           {formatCurrency(metrics.allTimeExpenses, currency)}
                         </span>
@@ -737,12 +739,12 @@ export function App() {
                     <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
                       Piggy Bank Ipon
                     </h1>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                      Mode B
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                      Savings
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                    Capital accumulation, coin jars, untouchable reserves & goal allocations
+                    Build your savings habit, stash money in your piggy bank, and watch your ipon grow
                   </p>
                 </div>
 
@@ -779,17 +781,17 @@ export function App() {
                   <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
                       <PiggyBank className="w-4 h-4 text-primary" />
-                      Accumulated Capital Stash
+                      Savings Stash
                     </h3>
 
                     <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-rose-50/40 border border-slate-200/80">
-                      <span className="text-xs text-slate-500 font-medium block">Total Ipon Stash</span>
+                      <span className="text-xs text-slate-500 font-medium block">Total Savings Stash</span>
                       <div className="text-2xl font-mono font-semibold text-slate-900 mt-1">
                         {formatCurrency(metrics.totalSavings, currency)}
                       </div>
                       <div className="text-[11px] text-emerald-600 font-mono font-medium mt-1 flex items-center gap-1">
                         <TrendingUp className="w-3.5 h-3.5" />
-                        <span>{metrics.savingsRate}% disciplined savings rate</span>
+                        <span>{metrics.savingsRate}% savings rate</span>
                       </div>
                     </div>
 
@@ -837,12 +839,12 @@ export function App() {
                     <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
                       Target Milestones
                     </h1>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">
                       Goals
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                    Capital milestones, automated progress calculation & liquidity health
+                    Set target goals for things you're saving for, and track your progress
                   </p>
                 </div>
 
@@ -908,7 +910,7 @@ export function App() {
                     </div>
 
                     <p className="text-xs text-slate-500 leading-relaxed font-normal pt-1">
-                      Goal allocations are backed by your client-side ipon stash. Deposits linked to goals automatically update progress meters.
+                      Deposits linked to your goals will automatically update your progress towards each target.
                     </p>
                   </div>
                 </div>
@@ -928,12 +930,12 @@ export function App() {
                     <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
                       Settings & Auth Management
                     </h1>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-semibold">
-                      System
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-medium">
+                      Preferences
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 font-normal">
-                    Session identity, base currency, and backup disaster recovery
+                    Manage your account, default currency, cloud backup, and data
                   </p>
                 </div>
               </div>
@@ -946,9 +948,9 @@ export function App() {
                       <Lock className="w-4 h-4 text-primary" />
                       <h2 className="text-sm font-semibold text-slate-900">Session & Identity</h2>
                     </div>
-                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Authenticated
+                      Signed In
                     </span>
                   </div>
 
@@ -959,12 +961,12 @@ export function App() {
                       <div className="font-semibold text-slate-900 truncate">
                         {primaryEmail || 'Authenticated User'}
                       </div>
-                      <div className="font-mono text-[11px] text-slate-400 truncate">
-                        UID: {userId || 'Local Session'}
+                      <div className="text-[11px] text-slate-400 truncate">
+                        Signed in via {isGoogleAccount ? 'Google' : 'Email'}
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
-                      Primary Unique Key
+                    <span className="text-[10px] font-medium px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                      Primary Account
                     </span>
                   </div>
 
@@ -981,12 +983,12 @@ export function App() {
                           <span className="font-medium text-slate-800">Google OAuth</span>
                         </div>
                         {currentUserProfile?.authProviders.includes('google') || isGoogleAccount ? (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
                             Linked
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
                             Available
                           </span>
                         )}
@@ -999,12 +1001,12 @@ export function App() {
                           <span className="font-medium text-slate-800">Email & Password</span>
                         </div>
                         {currentUserProfile?.authProviders.includes('email_password') || !isGoogleAccount ? (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
                             Linked
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
                             Available
                           </span>
                         )}
@@ -1013,13 +1015,13 @@ export function App() {
                   </div>
 
                   {/* Security Guard Guarantee */}
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1 text-[11px] text-slate-600">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1 text-xs text-slate-600">
                     <div className="flex items-center gap-1.5 font-semibold text-slate-800">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Duplicate Account Shield Active</span>
                     </div>
-                    <p className="text-slate-500 leading-relaxed font-normal">
-                      Google logins with existing emails automatically link and log in to your existing profile. Financial transactions and savings goals are partitioned privately per email account.
+                    <p className="text-slate-500 leading-relaxed font-normal text-[11px]">
+                      Your account is protected. Signing in with Google or your email will always safely connect to your personal vault without creating duplicate accounts.
                     </p>
                   </div>
                 </div>
@@ -1062,64 +1064,86 @@ export function App() {
                   </div>
                 </div>
 
-                {/* 3. Turso LibSQL Cloud Database Card */}
+                {/* 3. Cloud Sync & Automatic Backup Card (Technical details hidden by default) */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 md:col-span-2">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                       <Database className="w-4 h-4 text-primary" />
                       <h2 className="text-sm font-semibold text-slate-900">
-                        Turso LibSQL Cloud Database
+                        Cloud Backup & Sync
                       </h2>
                     </div>
-                    <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                    <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Live Edge Database
+                      {tursoStatus.connected ? 'Active & Synced' : 'Sync Issue'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <span className="text-slate-400 block text-[11px]">Database Instance</span>
-                      <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
-                        piggyvault-vinceestodomingo-cpu
-                      </span>
-                      <span className="text-[10px] text-slate-500 mt-0.5 block">
-                        Region: aws-ap-northeast-1 (Tokyo)
-                      </span>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <span className="text-slate-400 block text-[11px]">Engine Protocol</span>
-                      <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
-                        libsql:// (HTTP/Hrana Web)
-                      </span>
-                      <span className="text-[10px] text-slate-500 mt-0.5 block">
-                        Tables: users, transactions, savings_goals, user_settings
-                      </span>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
-                      <div>
-                        <span className="text-slate-400 block text-[11px]">Connection Status</span>
-                        <span className="font-mono font-semibold text-emerald-600 text-[12px] mt-0.5 block">
-                          {tursoStatus.latencyMs ? `Healthy (${tursoStatus.latencyMs}ms)` : 'Connected & Synced'}
-                        </span>
+                  {/* Clean User-Friendly Status Area */}
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Automatic Cloud Backup is Active</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleTestTurso}
-                        disabled={tursoStatus.checking}
-                        className="mt-2 text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium inline-flex items-center gap-1.5 cursor-pointer w-fit"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${tursoStatus.checking ? 'animate-spin text-primary' : 'text-slate-500'}`} />
-                        <span>{tursoStatus.checking ? 'Pinging...' : 'Test Connection'}</span>
-                      </button>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Your expenses and savings goals are safely synchronized so you never lose your data across devices.
+                      </p>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestTurso}
+                      disabled={tursoStatus.checking}
+                      className="text-xs px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors shadow-2xs"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${tursoStatus.checking ? 'animate-spin text-primary' : 'text-slate-500'}`} />
+                      <span>{tursoStatus.checking ? 'Checking Sync...' : 'Sync Now'}</span>
+                    </button>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                    Your financial transactions and savings goals are mirrored to Turso serverless LibSQL database for multi-device cloud persistence while retaining zero-latency local caching.
-                  </p>
+                  {/* Collapsible Technical Details (Hidden by Default) */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+                      className="text-[11px] text-slate-400 hover:text-slate-600 font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ChevronDown className={`w-3 h-3 transition-transform ${showTechnicalDetails ? 'rotate-180' : ''}`} />
+                      <span>{showTechnicalDetails ? 'Hide Advanced Technical Details' : 'Show Advanced Details (Database & Edge)'}</span>
+                    </button>
+
+                    {showTechnicalDetails && (
+                      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs animate-in fade-in duration-150">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-400 block text-[11px]">Database Instance</span>
+                          <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
+                            piggyvault-vinceestodomingo-cpu
+                          </span>
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">
+                            Region: aws-ap-northeast-1 (Tokyo)
+                          </span>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-400 block text-[11px]">Engine Protocol</span>
+                          <span className="font-mono font-semibold text-slate-800 text-[12px] mt-0.5 block truncate">
+                            libsql:// (HTTP/Hrana Web)
+                          </span>
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">
+                            Tables: users, transactions, savings_goals, user_settings
+                          </span>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-400 block text-[11px]">Connection Status</span>
+                          <span className="font-mono font-semibold text-emerald-600 text-[12px] mt-0.5 block">
+                            {tursoStatus.latencyMs ? `Healthy (${tursoStatus.latencyMs}ms latency)` : 'Connected & Synced'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 4. Data Backup & Storage Tools */}
@@ -1147,7 +1171,7 @@ export function App() {
                     >
                       <FileSpreadsheet className="w-5 h-5 text-slate-500 mb-1.5" />
                       <div className="text-xs font-semibold text-slate-900">Export CSV</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">Spreadsheet ledger</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Spreadsheet file</div>
                     </button>
 
                     <button
@@ -1160,7 +1184,7 @@ export function App() {
                     >
                       <FileCode className="w-5 h-5 text-slate-500 mb-1.5" />
                       <div className="text-xs font-semibold text-slate-900">Export JSON Backup</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">Full vault snapshot</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Full data backup file</div>
                     </button>
 
                     <button
@@ -1170,7 +1194,7 @@ export function App() {
                     >
                       <Upload className="w-5 h-5 text-slate-500 mb-1.5" />
                       <div className="text-xs font-semibold text-slate-900">Restore Backup</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">Import JSON file</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Import from backup file</div>
                     </button>
 
                     <button
@@ -1188,7 +1212,7 @@ export function App() {
                     >
                       <Trash2 className="w-5 h-5 text-rose-500 mb-1.5" />
                       <div className="text-xs font-semibold text-rose-700">Clear All Data</div>
-                      <div className="text-[11px] text-rose-500 mt-0.5">Reset database</div>
+                      <div className="text-[11px] text-rose-500 mt-0.5">Start fresh</div>
                     </button>
                   </div>
                 </div>
@@ -1201,13 +1225,13 @@ export function App() {
         <footer className="border-t border-slate-200/80 bg-white py-6 sm:py-8 text-xs text-slate-500 mt-8 mb-16 lg:mb-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 font-mono text-[11px]">
+              <div className="flex items-center gap-2 text-xs">
                 <span className="font-semibold text-slate-900">PiggyVault</span>
                 <span>·</span>
-                <span>Personal Treasury Operating System</span>
+                <span>Simple, Friendly Budget & Savings Tracker</span>
               </div>
               <div className="text-[11px] text-slate-400 font-normal">
-                Zero cloud tracking · 100% client-side privacy · Inter & JetBrains Mono
+                Your personal financial companion · Safe, secure & private
               </div>
             </div>
           </div>
